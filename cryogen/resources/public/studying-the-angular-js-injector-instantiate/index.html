@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Tao of Code: Studying the Angular JS Injector - instantiate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700' rel='stylesheet'
+          type='text/css'>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/androidstudio.css">
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/index.html">Tao of Code</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li ><a href="/index.html">Home</a></li>
+                
+                <li><a href="/feed.xml">RSS</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div><!--/.container-fluid -->
+</nav>
+
+
+<div class="container">
+
+
+    <div class="row">
+        <div class="col-lg-9">
+            <div id="content">
+                
+<div id="post">
+    <div id="post-header">
+    <div id="post-meta" class="row">
+        <div class="col-lg-6">February 24, 2014</div>
+        
+    </div>
+    <h2>Studying the Angular JS Injector - instantiate</h2>
+</div>
+<div>
+    
+    <p>(This post is part of a series <a href='http://taoofcode.net/studying-the-angular-injector/'>studying the AngularJS injector</a>)</p><p>Whilst <code>invoke</code> calls a function with it's parameters injected, <code>instantiate</code> will contruct a new object with it's constructor parameters injected.</p><p><code>instantiate</code> gives us an excellent insight into how javascript objects work. In javascript, a class is just a function and an class instance is just a function that has been invoked with the <code>new</code> operator.</p><p>Say we have a simple class :</p><pre><code class="language-javascript">function Person&#40;firstName, lastName&#41; {
+	this.firstName = firstName;
+    this.lastName = lastName;
+}
+</code></pre><p>We can add methods to this class via the functions <code>prototype</code> property.</p><pre><code class="language-javascript">Person.prototype.beNiceTo = function&#40;&#41; {
+	console.log&#40;this.firstName + ' ' + this.lastName + ' is my friend';
+};
+</code></pre><p>Then we can create an instance of this class with <code>new</code>.</p><pre><code class="language-javascript">&gt; var plum = new Person&#40;'Professor', 'Plonk'&#41;;
+&gt; plum.beNiceTo&#40;&#41;;
+Professor Plonk is my friend
+</code></pre><p>All is good.</p><p>Now in order to invoke a method and inject parameters into it, the Injector takes advantage of the <a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global&#95;Objects/Function/apply'>apply</a> method. This method allows you to invoke a function and pass in an array which will become that functions parameters. </p><p>Very useful, but the problem with <code>apply</code> is that it only works when you want to call a function. There is no way to mix <code>new</code> with <code>apply</code>. The Injector gets around this problem in a pretty clever way.</p><p>Lets look at the code.</p><pre><code class="language-javascript">function instantiate&#40;Type, locals&#41; {
+      var Constructor = function&#40;&#41; {},
+          instance, returnedValue;
+
+      // Check if Type is annotated and use just the given function at n-1 as parameter
+      // e.g. someModule.factory&#40;'greeter', &#91;'$window', function&#40;renamed$window&#41; {}&#93;&#41;;
+      Constructor.prototype = &#40;isArray&#40;Type&#41; ? Type&#91;Type.length - 1&#93; : Type&#41;.prototype;
+      instance = new Constructor&#40;&#41;;
+      returnedValue = invoke&#40;Type, instance, locals&#41;;
+
+      return isObject&#40;returnedValue&#41; || isFunction&#40;returnedValue&#41; ? returnedValue : instance;
+    }
+</code></pre><p>First we create a new, completely empty, object called <code>Constructor</code>.</p><p>If we had passed the above Person class into this method (into the Type parameter) we would then have these two classes:</p><pre><code>+--------------+ +---------------+
+|  beNiceTo    | |               |
++--------------+ +---------------+
+       &#94;                 &#94;
+       |                 |
+       |    Prototype    |
+       |                 |
++------+-------+ +-------+-------+
+|  Type        | | Constructor   |
+|--------------| |---------------|
+|              | |               |
+|              | |               |
++--------------+ +---------------+
+</code></pre><p>Next, we set our Constructors prototype to this new Constructors prototype. Copying methods between class prototypes is completely legal to do in javascript - it really is a very malleable language. Note, if Type is an array, this means that it is actually an annotated array - <code>&#91;'$scope', function&#40;$scope&#41; { }&#93;</code> and the classes constructor function is actually the last element of the array.</p><p>We now have these two classes :</p><pre><code>+--------------+
+|  beNiceTo    | +-------+
++--------------+         |
+       &#94;                 |
+       |                 |
+       |    Prototype    |
+       |                 |
++------+-------+ +-------+-------+
+|  Type        | | Constructor   |
+|--------------| |---------------|
+|              | |               |
+|              | |               |
++--------------+ +---------------+
+</code></pre><p>An instance of this class is then created. This doesn't do too much yet. It creates an object with our Types instance methods, but it hasn't actually invoked the constructor yet.</p><pre><code>+--------------+
+|  beNiceTo    | +-------+
++--------------+         |
+       &#94;                 |
+       |                 |
+       |    Prototype    |
+       |                 |
++------+-------+ +-------+-------+
+|  Type        | | Constructor   |
+|--------------| |---------------|
+|              | |               |
+|              | |               |
++--------------+ +---------------+
+                         &#94;
+                         |
+                         |
+                 +-------+-------+
+                 |   Instance    |
+                 |---------------|
+                 |               |
+                 |               |
+                 +---------------+
+</code></pre><p>We still need to invoke this constructor and inject the parameters into it. To do this we call <code>invoke</code> with our type as normal. </p><p>There is one significant difference - we pass the new Constructor instance that we have just created. When <code>invoke</code> calls the method with the injected parameters it does this using <code>fn.apply&#40;self, args&#41;</code>. Looking back at the <a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global&#95;Objects/Function/apply'>apply</a> documentation, the first parameter sent will become the <code>this</code> variable in the function. So, by invoking with our newly created class, the constructor is called against it.</p><p>So we have managed to create our new class without ever actually calling <code>new</code> on it.</p><pre><code>+--------------+
+|  beNiceTo    | +-------+
++--------------+         |
+       &#94;                 |
+       |                 |
+       |    Prototype    |
+       |                 |
++------+-------+ +-------+-------+
+|  Type        | | Constructor   |
+|--------------| |---------------|
+|              | |               |
+|              | |               |
++--------------+ +---------------+
+                         &#94;
+                         |
+                         |
+                 +-------+-------+
+                 |   Instance    |
+                 |---------------|
+                 | Professor     |
+                 | Plonk         |
+                 +---------------+
+</code></pre><p>This instance with injected parameters is then returned.</p><p>Next, we will tie everything together by looking at how the Injector is set up: <a href='http://taoofcode.net/studying-the-angular-injector-the-twin-injectors'>the twin injectors</a></p>
+</div>
+
+<div id="post-tags">
+    <b>Tags: </b>
+    
+    <a href="/tags/angularjs.html">angularjs</a>
+    
+    <a href="/tags/javascript.html">javascript</a>
+    
+</div>
+
+
+    <div id="prev-next">
+        
+        <a href="/studying-the-angular-injector-the-twin-injectors/">&laquo; Studying the Angular JS Injector - the twin injectors</a>
+        
+        
+        <a class="right" href="/studying-the-angular-injector-invoke/">Studying the Angular JS Injector - invoke &raquo;</a>
+        
+    </div>
+
+    
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//taoofcode.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    
+
+
+</div>
+
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div id="sidebar">
+                
+                <div id="tags">
+                    <h3>Tags</h3>
+                    <ul>
+                        
+                        <li><a href="/tags/angularjs.html">angularjs</a></li>
+                        
+                        <li><a href="/tags/javascript.html">javascript</a></li>
+                        
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p style="text-align: center;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script src="../js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>
+

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Tao of Code: Studying the Angular JS Injector - invoke</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700' rel='stylesheet'
+          type='text/css'>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/androidstudio.css">
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/index.html">Tao of Code</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li ><a href="/index.html">Home</a></li>
+                
+                <li><a href="/feed.xml">RSS</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div><!--/.container-fluid -->
+</nav>
+
+
+<div class="container">
+
+
+    <div class="row">
+        <div class="col-lg-9">
+            <div id="content">
+                
+<div id="post">
+    <div id="post-header">
+    <div id="post-meta" class="row">
+        <div class="col-lg-6">February 24, 2014</div>
+        
+    </div>
+    <h2>Studying the Angular JS Injector - invoke</h2>
+</div>
+<div>
+    
+    <p>(This post is part of a series <a href='http://taoofcode.net/studying-the-angular-injector/'>studying the AngularJS injector</a>)</p><p>The invoke method invokes the given function with the parameters injected.</p><pre><code class="language-javascript">function invoke&#40;fn, self, locals&#41;{
+      var args = &#91;&#93;,
+          $inject = annotate&#40;fn&#41;,
+          length, i,
+          key;
+
+      for&#40;i = 0, length = $inject.length; i &lt; length; i++&#41; {
+        key = $inject&#91;i&#93;;
+        if &#40;typeof key !== 'string'&#41; {
+          throw $injectorMinErr&#40;'itkn',
+                  'Incorrect injection token! Expected service name as string, got {0}', key&#41;;
+        }
+        args.push&#40;
+          locals &amp;&amp; locals.hasOwnProperty&#40;key&#41;
+          ? locals&#91;key&#93;
+          : getService&#40;key&#41;
+        &#41;;
+      }
+      if &#40;!fn.$inject&#41; {
+        // this means that we must be an array.
+        fn = fn&#91;length&#93;;
+      }
+
+      // http://jsperf.com/angularjs-invoke-apply-vs-switch
+      // #5388
+      return fn.apply&#40;self, args&#41;;
+    }
+</code></pre><p>The first thing to note is that this method actually takes three parameters, the Angular documentation only mentions the first one.</p><p>Invoke first <a href='http://taoofcode.net/studying-the-angular-injector-annotate/'>annotates</a> the method to get a list of its parameters.</p><p>Each of these parameters are then validated to ensure they are a String. Then <code>invoke</code> locates the value to inject into the method with this code :</p><pre><code class="language-javascript"> args.push&#40;
+          locals &amp;&amp; locals.hasOwnProperty&#40;key&#41;
+          ? locals&#91;key&#93;
+          : getService&#40;key&#41;
+        &#41;;
+</code></pre><p>First, we look to see if the value is found in the <code>locals</code> parameter. <a href='http://docs.angularjs.org/api/ngRoute/provider/$routeProvider'>$routeProvider</a> uses this in <code>route.resolve</code> where you can setup additional dependencies to inject into the controller.</p><p>It is also possible to use this to override the registered service. Handy for unit testing.</p><p>If the value is not found in <code>locals</code>, <code>getService</code> is called to attempt to locate it.</p><p>Once all parameters are retrieved, the function is called with these parameters using <a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global&#95;Objects/Function/apply'>apply</a> and its result is returned.</p><p>Next: <a href='http://taoofcode.net/studying-the-angular-injector-getservice'>getService</a></p>
+</div>
+
+<div id="post-tags">
+    <b>Tags: </b>
+    
+    <a href="/tags/angularjs.html">angularjs</a>
+    
+    <a href="/tags/javascript.html">javascript</a>
+    
+</div>
+
+
+    <div id="prev-next">
+        
+        <a href="/studying-the-angular-js-injector-instantiate/">&laquo; Studying the Angular JS Injector - instantiate</a>
+        
+        
+        <a class="right" href="/studying-the-angular-injector-getservice/">Studying the Angular JS Injector - getService &raquo;</a>
+        
+    </div>
+
+    
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//taoofcode.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    
+
+
+</div>
+
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div id="sidebar">
+                
+                <div id="tags">
+                    <h3>Tags</h3>
+                    <ul>
+                        
+                        <li><a href="/tags/angularjs.html">angularjs</a></li>
+                        
+                        <li><a href="/tags/javascript.html">javascript</a></li>
+                        
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p style="text-align: center;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script src="../js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>
+

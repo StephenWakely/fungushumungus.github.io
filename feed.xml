@@ -1,0 +1,805 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rss version='2.0' xmlns:atom='http://www.w3.org/2005/Atom'>
+<channel>
+<atom:link href='http://taoofcode.net/' rel='self' type='application/rss+xml'/>
+<generator>
+clj-rss
+</generator>
+<title>
+Tao of Code
+</title>
+<link>
+http://taoofcode.net/
+</link>
+<description>
+The sound of recursion.
+</description>
+<lastBuildDate>
+Thu, 04 Jun 2015 15:56:09 +0100
+</lastBuildDate>
+<item>
+<guid>
+http://taoofcode.net/creating-a-plugin-system-with-the-compile-provider/
+</guid>
+<link>
+http://taoofcode.net/creating-a-plugin-system-with-the-compile-provider/
+</link>
+<title>
+Creating a plugin system in Angular JS with the $compile service
+</title>
+<description>
+&lt;p&gt;Angular JS directives are powerful. Using them allows you to manipulate pretty much everything in the DOM that you would want to. But there is one exception. Dynamically creating a directive depending on data received from the server, something often used for plugin systems. Luckily we can access the $compileProvider directly to work around these limitations.&lt;/p&gt;&lt;h2&gt;&lt;a name=&quot;plugins&quot;&gt;&lt;/a&gt;Plugins&lt;/h2&gt;Say you are designing a plugin system. Each plugin is implemented as a different directive. The plugin to use is stored in the database and sent down from the server.&lt;p&gt;Lets set up a couple of very simple directives:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;angular.module&amp;#40;'anApp'&amp;#41;.directive&amp;#40;'one', function&amp;#40;&amp;#41; {
+    return {
+        template: '&amp;lt;span&amp;gt;I am one&amp;lt;/span&amp;gt;'   
+    };
+}&amp;#41;;
+
+angular.module&amp;#40;'anApp'&amp;#41;.directive&amp;#40;'two', function&amp;#40;&amp;#41; {
+    return {
+        template: '&amp;lt;span&amp;gt;I am two&amp;lt;/span&amp;gt;'   
+    };
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Our controller grabs the plugin to use from a factory and attaches it to the scope. This factory has presumably queried the server to get the name of the plugin we need :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;angular.module&amp;#40;'anApp'&amp;#41;.controller&amp;#40;'aCtrl', function&amp;#40;$scope, aFactory&amp;#41; {
+    aFactory&amp;#40;&amp;#41;.then&amp;#40;function&amp;#40;plugin&amp;#41; {
+       $scope.plugin = plugin; // Either 'one' or 'two'.
+    }&amp;#41;;
+}&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now we have a problem. How are we going to render the required directive?&lt;/p&gt;&lt;h3&gt;&lt;a name=&quot;naive&amp;#95;approaches&quot;&gt;&lt;/a&gt;Naive approaches&lt;/h3&gt;&lt;p&gt;A naive approach might be something like :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;lt;div ng-app='anApp'&amp;gt;
+    &amp;lt;div ng-controller='aCtrl'&amp;gt;
+        &amp;lt;div {{plugin}}&amp;gt;&amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;That doesn't work. The &lt;code&gt;{{plugin}}&lt;/code&gt; does not get interpolated in time and so the directive is not rendered.&lt;/p&gt;&lt;p&gt;Another approach that could almost work is specifying a directive that uses a function to specify the template.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;.directive&amp;#40;'taoPlugin', function&amp;#40;&amp;#41; {
+    return {
+        template: function&amp;#40;element, attrs&amp;#41; { 
+            var p = attrs.plugin;
+            return '&amp;lt;' + p + ' /&amp;gt;'; 
+        }  
+    }   
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This could almost work. The problem is the attrs doesn't contain the correct plugin name. We want to pull the plugin name out of our parents controllers scope. There is no way of pulling the actual data out of the scope into the attrs collection. (Feel free to correct me if I am wrong - it would be great if there was!) &lt;/p&gt;&lt;p&gt;So we just end up with the following output rendered to page :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;lt;one /&amp;gt;
+&lt;h2&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/h2&gt;&lt;h3&gt;&lt;a name=&quot;$compile&amp;#95;to&amp;#95;the&amp;#95;rescue.&quot;&gt;&lt;/a&gt;$compile to the rescue.&lt;/h3&gt;&lt;p&gt;$compile is the provider that takes an HTML template string and creates a template function. When this template function is called with a &lt;code&gt;$scope&lt;/code&gt; it spits out HTML. It is the provider at the core of Angular which enables directives to manipulate the DOM using the Angular templating language.&lt;/p&gt;&lt;p&gt;It takes template HTML : &lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;lt;div&amp;gt;{{something}}&amp;lt;/div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and returns a function, which we call with a scope :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;$scope.something = 'Interesting text'
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and compiles it to : &lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;lt;div&amp;gt;Interesting text&amp;lt;/div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;(Note the text is not acually interpolated until it is rendered to the DOM.)&lt;p&gt;So, if we pass &lt;code&gt;$compile&lt;/code&gt; the string : &lt;code&gt;'&amp;lt;one /&amp;gt;'&lt;/code&gt; it is actually going to compile our &lt;code&gt;one&lt;/code&gt; directive. Naturally because we are just passing a string, we will have no problems building this string up at run time to whatever we require.&lt;/p&gt;&lt;p&gt;Then all we need to do is append this html to a given element for it to be rendered on the page. To access an element on the page we need to create a directive. So lets create this directive.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;angular.module&amp;#40;'anApp'&amp;#41;.directive&amp;#40;'taoPlugin', &amp;#91;'$compile', function&amp;#40;$compile&amp;#41; {
+    return {
+        restrict: 'E',
+        scope: { 'plugin': '=' },
+        link: function&amp;#40;scope, element&amp;#41; {
+            var template = '&amp;lt;' + scope.plugin + ' /&amp;gt;',
+                compiled = $compile&amp;#40;template&amp;#41;&amp;#40;scope&amp;#41;;
+
+			element.append&amp;#40;compiled&amp;#41;;            
+        }   
+    }   
+}&amp;#93;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We can then setup our directive simply :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;lt;tao-plugin plugin='plugin'&amp;gt;&amp;lt;/tao-plugin&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The directive we have set in our controller  : &lt;code&gt;$scope.plugin = plugin;&lt;/code&gt; is the directive that is rendered.&lt;/p&gt;&lt;p&gt;Here is a &lt;a href='http://jsfiddle.net/ht8ZQ/26/'&gt;jsFiddle&lt;/a&gt; that demonstrates this.&lt;/p&gt;&lt;p&gt;Note our directive here isn't passing on any parameters to the plugin directive. This could be achieved by looping round the attr array that gets passed into the link function.&lt;/p&gt;&lt;p&gt;Also note that the directive has isolate scope. This gets passed on to the plugin directives. If you want a different scope for your plugins, you would need to change the scope of this plugin as well.&lt;/p&gt;
+</description>
+<pubDate>
+Fri, 04 Jul 2014 00:00:00 +0100
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/javascript-schonfinkeling/
+</guid>
+<link>
+http://taoofcode.net/javascript-schonfinkeling/
+</link>
+<title>
+Javascript Schönfinkeling
+</title>
+<description>
+&lt;p&gt;In Javascript is it extremely common to pass function as parameters to other functions.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function addOne&amp;#40;a&amp;#41; {
+	return a + 1;
+}
+
+&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;addOne&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;This is all good. However when your function takes more than one parameter, you can't just pass the function directly so you need to create a new function which calls the original one:&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function add&amp;#40;a,b&amp;#41; {
+	return a + b;
+}
+
+&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;function&amp;#40;a&amp;#41; {
+	return add&amp;#40;a,1&amp;#41;;
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This does work, but you do lose some expressiveness by doing so - the semantics of the code gets lost in the syntax.&lt;/p&gt;&lt;p&gt;We can break up our add function to return a nested series of functions - one for each parameter:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function add&amp;#40;a&amp;#41; {
+	return function&amp;#40;b&amp;#41; {
+		return a + b;
+    };
+}
+
+&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;add&amp;#40;1&amp;#41;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This technique of taking a function that accepts multiple parameters and converting it into a chain of functions, each accepting one parameter, is known as &lt;a href='https://en.wikipedia.org/wiki/Currying'&gt;Currying&lt;/a&gt; (also known as Schönfinkeling).&lt;/p&gt;&lt;p&gt;Although it is more expressive to call, it is a bit of a pain to have to write that curried function. It would be better if we could write something that could convert a standard function into a curried function.&lt;/p&gt;&lt;p&gt;So, instead of capturing the parameters in a series of nested closures, the following function will collect the passed parameter in an array. This is captured in a closure that is then returned for the next call in the chain. When all the required parameters have been collected, it calls the our function:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var curry = function&amp;#40;fn&amp;#41; {
+
+  var curryOrCall = function&amp;#40;args&amp;#41; {
+    if &amp;#40;fn.length === args.length&amp;#41; {
+      // All parameters have been passed, call the original function
+      return fn.apply&amp;#40;this, args&amp;#41;;
+    }
+    
+    return function&amp;#40;param&amp;#41; {
+      // Create a copy of the arguments
+      var myargs=args.slice&amp;#40;0&amp;#41;; 
+      // Add the new argument to the list.
+      myargs.push&amp;#40;param&amp;#41;; 
+      return curryOrCall&amp;#40;myargs&amp;#41;;
+    };
+  };
+  
+  return curryOrCall&amp;#40;&amp;#91;&amp;#93;&amp;#41;; 
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Used like:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var add = curry&amp;#40;add&amp;#40;a,b&amp;#41; {
+	return a + b;
+}&amp;#41;;
+
+&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;add&amp;#40;1&amp;#41;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This is all good and well, but we can only pass one parameter at a time, so it can get a little annoying, and inefficient, if there are several parameters you need to deal with. &lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var add3 = curry&amp;#40;add&amp;#40;a,b,c&amp;#41; {
+	return a + b + c;
+}&amp;#41;;
+
+&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;add3&amp;#40;1&amp;#41;&amp;#40;2&amp;#41;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Pure currying means that each function in the chain &lt;strong&gt;must&lt;/strong&gt; take only one parameter. In practical terms, often we will have multiple parameters that we want to pass, like: &lt;code&gt;&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;add3&amp;#40;1,2&amp;#41;&amp;#41;;&lt;/code&gt;&lt;/p&gt;&lt;h3&gt;&lt;a name=&quot;partial&amp;#95;function&amp;#95;application&quot;&gt;&lt;/a&gt;Partial function application&lt;/h3&gt;&lt;p&gt;This is what &lt;em&gt;partial function application&lt;/em&gt; is all about. Lets adjust our &lt;code&gt;curry&lt;/code&gt; function to enable multiple parameters at a time:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var partial = function&amp;#40;fn&amp;#41; {
+
+  var partialOrCall = function&amp;#40;args&amp;#41; {
+    if &amp;#40;fn.length === args.length&amp;#41; {
+      // All parameters have been passed, call the original function
+      return fn.apply&amp;#40;this, args&amp;#41;;
+    }
+
+    return function&amp;#40;/&amp;#42; arguments &amp;#42;/&amp;#41; {
+      // Add all passed arguments to our arguments list
+      var myargs=args.slice&amp;#40;0&amp;#41;.concat&amp;#40;
+      	Array.prototype.slice.call&amp;#40;arguments, 0&amp;#41;&amp;#41;;
+      return partialOrCall&amp;#40;myargs&amp;#41;;
+    };
+  };
+
+  return partialOrCall&amp;#40;&amp;#91;&amp;#93;&amp;#41;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;So now it works with multiple parameters:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var add = partial&amp;#40;add3&amp;#40;a,b,c&amp;#41; {
+	return a + b + c;
+}&amp;#41;;
+
+&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;add3&amp;#40;1,2&amp;#41;&amp;#41;;
+
+// Note currying still works if you really want to:
+&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;add3&amp;#40;1&amp;#41;&amp;#40;2&amp;#41;&amp;#41;;
+
+&lt;h2&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/h2&gt;&lt;h3&gt;&lt;a name=&quot;uses&quot;&gt;&lt;/a&gt;Uses&lt;/h3&gt;&lt;h4&gt;&lt;a name=&quot;passing&amp;#95;to&amp;#95;higher-order&amp;#95;functions&quot;&gt;&lt;/a&gt;Passing to higher-order functions&lt;/h4&gt;Partial function application lets you be more expressive when passing functions to higher-order functions such as map.&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;function&amp;#40;a&amp;#41; {
+	return add&amp;#40;4, a&amp;#41;;
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;vs &lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;#91;1,2,3,4&amp;#93;.map&amp;#40;add&amp;#40;4&amp;#41;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;&lt;/h2&gt;&lt;h4&gt;&lt;a name=&quot;creating&amp;#95;member&amp;#95;functions&quot;&gt;&lt;/a&gt;Creating member functions&lt;/h4&gt;&lt;p&gt;If you have an object whose member functions invoke largely the same functionality but with some slight differences, you can set these members to be a partially applied function against one common function. This  is used in Angular JS:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt; function supportObject&amp;#40;delegate&amp;#41; {
+    return function&amp;#40;key, value&amp;#41; {
+      ...
+    };
+  }
+
+providerCache = {
+        $provide: {
+            provider: supportObject&amp;#40;provider&amp;#41;,
+            factory: supportObject&amp;#40;factory&amp;#41;,
+            service: supportObject&amp;#40;service&amp;#41;,
+            value: supportObject&amp;#40;value&amp;#41;,
+            constant: supportObject&amp;#40;constant&amp;#41;
+            ...
+          }
+      },
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;(This could be rewritten with our partial method as):&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var supportObject = partial&amp;#40;function&amp;#40;delegate, key, value&amp;#41; {
+      ...
+}
+
+providerCache = {
+        $provide: {
+            provider: supportObject&amp;#40;provider&amp;#41;,
+            factory: supportObject&amp;#40;factory&amp;#41;,
+            service: supportObject&amp;#40;service&amp;#41;,
+            value: supportObject&amp;#40;value&amp;#41;,
+            constant: supportObject&amp;#40;constant&amp;#41;
+            ...
+          }
+      },
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+<pubDate>
+Tue, 18 Mar 2014 00:00:00 +0000
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/studying-the-angular-injector-loading-modules/
+</guid>
+<link>
+http://taoofcode.net/studying-the-angular-injector-loading-modules/
+</link>
+<title>
+Studying the Angular JS Injector - loading modules
+</title>
+<description>
+&lt;p&gt;(This post is part of a series &lt;a href='http://taoofcode.net/studying-the-angular-injector/'&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;&lt;p&gt;A module gets loaded with the following code:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt; function loadModules&amp;#40;modulesToLoad&amp;#41;{
+    var runBlocks = &amp;#91;&amp;#93;, moduleFn, invokeQueue, i, ii;
+    forEach&amp;#40;modulesToLoad, function&amp;#40;module&amp;#41; {
+      if &amp;#40;loadedModules.get&amp;#40;module&amp;#41;&amp;#41; return;
+      loadedModules.put&amp;#40;module, true&amp;#41;;
+
+      try {
+        if &amp;#40;isString&amp;#40;module&amp;#41;&amp;#41; {
+          moduleFn = angularModule&amp;#40;module&amp;#41;;
+          runBlocks = runBlocks.concat&amp;#40;loadModules&amp;#40;moduleFn.requires&amp;#41;&amp;#41;.concat&amp;#40;moduleFn.&amp;#95;runBlocks&amp;#41;;
+
+          for&amp;#40;invokeQueue = moduleFn.&amp;#95;invokeQueue, i = 0, ii = invokeQueue.length; i &amp;lt; ii; i++&amp;#41; {
+            var invokeArgs = invokeQueue&amp;#91;i&amp;#93;,
+                provider = providerInjector.get&amp;#40;invokeArgs&amp;#91;0&amp;#93;&amp;#41;;
+
+            provider&amp;#91;invokeArgs&amp;#91;1&amp;#93;&amp;#93;.apply&amp;#40;provider, invokeArgs&amp;#91;2&amp;#93;&amp;#41;;
+          }
+        } else if &amp;#40;isFunction&amp;#40;module&amp;#41;&amp;#41; {
+            runBlocks.push&amp;#40;providerInjector.invoke&amp;#40;module&amp;#41;&amp;#41;;
+        } else if &amp;#40;isArray&amp;#40;module&amp;#41;&amp;#41; {
+            runBlocks.push&amp;#40;providerInjector.invoke&amp;#40;module&amp;#41;&amp;#41;;
+        } else {
+          assertArgFn&amp;#40;module, 'module'&amp;#41;;
+        }
+      } catch &amp;#40;e&amp;#41; {
+        if &amp;#40;isArray&amp;#40;module&amp;#41;&amp;#41; {
+          module = module&amp;#91;module.length - 1&amp;#93;;
+        }
+        if &amp;#40;e.message &amp;amp;&amp;amp; e.stack &amp;amp;&amp;amp; e.stack.indexOf&amp;#40;e.message&amp;#41; == -1&amp;#41; {
+          // Safari &amp;amp; FF's stack traces don't contain error.message content
+          // unlike those of Chrome and IE
+          // So if stack doesn't contain message, we create a new string that contains both.
+          // Since error.stack is read-only in Safari, I'm overriding e and not e.stack here.
+          /&amp;#42; jshint -W022 &amp;#42;/
+          e = e.message + '\n' + e.stack;
+        }
+        throw $injectorMinErr&amp;#40;'modulerr', &amp;quot;Failed to instantiate module {0} due to:\n{1}&amp;quot;,
+                  module, e.stack || e.message || e&amp;#41;;
+      }
+    }&amp;#41;;
+    return runBlocks;
+  }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The function returns an array of runBlocks - functions which are to be invoked after loading.&lt;/p&gt;&lt;p&gt;There are three ways to define a module in AngularJS. The first is by specifying a runBlock directly :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;angular.module&amp;#40;function&amp;#40;$httpProvider&amp;#41; {
+	console.log&amp;#40;'Module is now running'&amp;#41;;
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Or by passing an array :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;angular.module&amp;#40;&amp;#91;'$httpProvider', function&amp;#40;$httpProvider&amp;#41; {
+	...
+}&amp;#93;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In both these cases the module is run with this line:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;	runBlocks.push&amp;#40;providerInjector.invoke&amp;#40;module&amp;#41;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The module function is invoked against the providerInjector. This means that we can inject the elusive &lt;code&gt;$provide&lt;/code&gt; object into this function. This can then be used to register services directly.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var injector = angular.injector&amp;#40;&amp;#91;function&amp;#40;$provide&amp;#41; {
+	$provide.value&amp;#40;'anInterestingFact', 'An ant has two stomachs. One for its own food and another for food to share'&amp;#41;;
+}&amp;#93;&amp;#41;;
+
+injector.get&amp;#40;'anInterestingFact'&amp;#41;;
+// 'An ant has two stomachs. One for its own food and another for food to share'
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Most likely the module will be defined with a string that identifies the name of the module. A module in Angular is typically setup as follows :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;angular.module&amp;#40;'myModule', &amp;#91;dependency&amp;#93;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;If the module has been defined in this way, the following code is run:&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;moduleFn = angularModule&amp;#40;module&amp;#41;;
+runBlocks = runBlocks.concat&amp;#40;loadModules&amp;#40;moduleFn.requires&amp;#41;&amp;#41;.concat&amp;#40;moduleFn.&amp;#95;runBlocks&amp;#41;;
+
+for&amp;#40;invokeQueue = moduleFn.&amp;#95;invokeQueue, i = 0, ii = invokeQueue.length; i &amp;lt; ii; i++&amp;#41; {
+	var invokeArgs = invokeQueue&amp;#91;i&amp;#93;,
+    	provider = providerInjector.get&amp;#40;invokeArgs&amp;#91;0&amp;#93;&amp;#41;;
+
+	provider&amp;#91;invokeArgs&amp;#91;1&amp;#93;&amp;#93;.apply&amp;#40;provider, invokeArgs&amp;#91;2&amp;#93;&amp;#41;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;First we retrieve the module object using the angularModule function. This function is defined outside of the injector and is just an alias for the angular.module function. When the module is setup two arrays are populated : &lt;code&gt;&amp;#95;runBlocks&lt;/code&gt; and &lt;code&gt;&amp;#95;invokeQueue&lt;/code&gt;. (The code that sets this module up is not within the injector module, so I won't be looking at this for the moment.)&lt;/p&gt;&lt;h3&gt;&lt;a name=&quot;&lt;i&gt;runblocks&quot;&gt;&lt;/a&gt;&lt;/i&gt;runBlocks&lt;/h3&gt;&lt;p&gt;This gets populated with functions specified in the &lt;code&gt;angular.module&amp;#40;'myModule'&amp;#41;.run&lt;/code&gt; block. This code needs to be invoked as soon as the module is loaded. So we concat this array to our runBlocks return.&lt;/p&gt;&lt;h3&gt;&lt;a name=&quot;&lt;i&gt;invokequeue&quot;&gt;&lt;/a&gt;&lt;/i&gt;invokeQueue&lt;/h3&gt;&lt;p&gt;The _invokeQueue is populated with each service that is added to the module using the familiar &lt;code&gt;angular.module&amp;#40;'myModule'&amp;#41;.controller&lt;/code&gt;, &lt;code&gt;angular.module&amp;#40;'myModule'&amp;#41;.directive&lt;/code&gt; et al. calls. Each item in the queue is an array with three elements. The first is the provider that will invoke the service, the second is the method on the provider to use and the third element is an array of any arguments passed to the service.&lt;/p&gt;&lt;p&gt;Lets look at an example to see how it all fits together. Say we setup our module as follows:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;angular.module&amp;#40;'aNiceModule', &amp;#91;&amp;#93;&amp;#41;
+		.run&amp;#40;function&amp;#40;&amp;#41; {
+			console.log&amp;#40;'running...'&amp;#41;;
+		}&amp;#41;
+		.controller&amp;#40;'aNiceController', function&amp;#40;$scope&amp;#41; {
+			console.log&amp;#40;'setting up controller'&amp;#41;;
+		}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We can call &lt;code&gt;angular.bootstrap&amp;#40;window.document.body, &amp;#91;'aNiceModule'&amp;#93;&amp;#41;;&lt;/code&gt; to kick off the module loading. The &lt;code&gt;aNiceModule&lt;/code&gt; module will have one entry in _runBlocks:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function&amp;#40;&amp;#41; {
+	console.log&amp;#40;'running...'&amp;#41;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and one entry in &lt;code&gt;&amp;#95;invokeQueue&lt;/code&gt;:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;#91;'$controllerProvider', 'register', &amp;#91;'aNiceModule', function&amp;#40;$scope&amp;#41; {...}&amp;#93;&amp;#93;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The &lt;code&gt;$controllerProvider&lt;/code&gt; is the built-in Angular provider that enables registering controllers. Calling register will add this service to the list of available controllers. Note that nothing gets added to the injectors cache. This means controllers cannot be injected into a service. If you really needed to get access to a controller (you do when unit testing) you would inject the &lt;code&gt;$controller&lt;/code&gt; provider and retreive the controller by calling &lt;code&gt;get&amp;#40;controllerName&amp;#41;&lt;/code&gt;.&lt;/p&gt;&lt;p&gt;Lets try creating a factory service:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;angular.module&amp;#40;'aNiceModule', &amp;#91;&amp;#93;&amp;#41;
+		.factory&amp;#40;'aNiceFactory', function&amp;#40;&amp;#41; {
+			console.log&amp;#40;'setting up factory'&amp;#41;;
+			return {};
+		}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;When we load this module, &lt;code&gt;&amp;#95;invokeQueue&lt;/code&gt; will have the following entry:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;#91;'$provide', 'factory', &amp;#91;'aNiceModule', function&amp;#40;&amp;#41; {...}&amp;#93;&amp;#93;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The service gets registered using the built in &lt;code&gt;$provideProvider&lt;/code&gt;. The service is then available to the injector to inject into any other service that needs it.&lt;/p&gt;&lt;p&gt;That pretty much sums up the injector. The rest of Angular JS is built around this core module and it has proved immensely insightful to learn it inside out.&lt;/p&gt;&lt;p&gt;If you are interested in using it on the server in your nodeJS app, I have pulled out the injector code into &lt;a href='https://github.com/FungusHumungus/pongular'&gt;it's own module&lt;/a&gt;.&lt;/p&gt;
+</description>
+<pubDate>
+Mon, 10 Mar 2014 00:00:00 +0000
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/studying-the-angular-injector-the-twin-injectors/
+</guid>
+<link>
+http://taoofcode.net/studying-the-angular-injector-the-twin-injectors/
+</link>
+<title>
+Studying the Angular JS Injector - the twin injectors
+</title>
+<description>
+&lt;p&gt;(This post is part of a series &lt;a href='http://taoofcode.net/studying-the-angular-injector/'&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;&lt;p&gt;When Angular creates the injector, it actually creates two injectors:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;providerInjector = &amp;#40;providerCache.$injector =
+	createInternalInjector&amp;#40;providerCache, function&amp;#40;&amp;#41; {
+		throw $injectorMinErr&amp;#40;'unpr', &amp;quot;Unknown provider: {0}&amp;quot;, path.join&amp;#40;' &amp;lt;- '&amp;#41;&amp;#41;;
+	}&amp;#41;&amp;#41;,
+          
+instanceInjector = &amp;#40;instanceCache.$injector =
+	createInternalInjector&amp;#40;instanceCache, function&amp;#40;servicename&amp;#41; {
+		var provider = providerInjector.get&amp;#40;servicename + providerSuffix&amp;#41;;
+		return instanceInjector.invoke&amp;#40;provider.$get, provider&amp;#41;;
+	}&amp;#41;&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Two parameters are passed to the createInternalInjector function. The first is the cache to use to look up instances (a simple object). The second is a factory function. The factory function is used to create a service when it doesn't exist in the cache.&lt;/p&gt;&lt;h3&gt;&lt;a name=&quot;the&amp;#95;instanceinjector&quot;&gt;&lt;/a&gt;the instanceInjector&lt;/h3&gt;&lt;p&gt;The instanceInjector is the injector that is returned when you call createInjector.&lt;/p&gt;&lt;p&gt;The instanceInjector stores the list of instantiated services in the system. It is initialised with an empty object. The providerInjector maintains the list of uninstantiated services. &lt;/p&gt;&lt;p&gt;Looking at the factory function for instance injector, when we are trying to fetch a service that has not yet been instantiated, we will look up the service name in the providerInjector with the name &lt;code&gt;servicename + providerSuffix&lt;/code&gt;. providerSuffix is the string &lt;code&gt;Provider&lt;/code&gt;. When we have this we invoke the &lt;code&gt;$get&lt;/code&gt; function of the provider object.&lt;/p&gt;&lt;p&gt;There are two assumptions made here. &lt;/p&gt;&lt;ol&gt;&lt;li&gt;All services stored in the &lt;code&gt;providerInjector&lt;/code&gt; are named with a suffix &lt;code&gt;Provider&lt;/code&gt;.&lt;/li&gt;&lt;li&gt;All services stored in the &lt;code&gt;providerInjector&lt;/code&gt; are objects with a &lt;code&gt;$get&lt;/code&gt; function.&lt;h2&gt;&lt;/h2&gt;&lt;/li&gt;&lt;/ol&gt;&lt;h3&gt;&lt;a name=&quot;the&amp;#95;providerinjector&quot;&gt;&lt;/a&gt;the providerInjector&lt;/h3&gt;&lt;p&gt;Lets see how the providerInjector is set up.&lt;/p&gt;&lt;p&gt;The cache for the providerInjector is initialised with one service - $provide :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt; providerCache = {
+        $provide: {
+            provider: supportObject&amp;#40;provider&amp;#41;,
+            factory: supportObject&amp;#40;factory&amp;#41;,
+            service: supportObject&amp;#40;service&amp;#41;,
+            value: supportObject&amp;#40;value&amp;#41;,
+            constant: supportObject&amp;#40;constant&amp;#41;,
+            decorator: decorator
+          }
+      }
+&lt;/code&gt;&lt;/pre&gt;The $provide service is always available on the providerInjector by default. It is through this service that all other services are registered.&lt;p&gt;supportObject is the following method:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function supportObject&amp;#40;delegate&amp;#41; {
+    return function&amp;#40;key, value&amp;#41; {
+      if &amp;#40;isObject&amp;#40;key&amp;#41;&amp;#41; {
+        forEach&amp;#40;key, reverseParams&amp;#40;delegate&amp;#41;&amp;#41;;
+      } else {
+        return delegate&amp;#40;key, value&amp;#41;;
+      }
+    };
+  }
+&lt;/code&gt;&lt;/pre&gt;This is a very common javascript pattern. A function that captures a variable (in this case &lt;code&gt;delegate&lt;/code&gt;) that then returns another function. &lt;p&gt;The returned function from &lt;code&gt;supportObject&lt;/code&gt; will apply the delegate to the parameters, or if an object is passed in apply the delegate to all the fields of that object.&lt;/p&gt;&lt;p&gt;The delegate passed in is a function that handles the creation of either a provider, factory, service, value or constant. Each of these work slightly differently, but they all end up adding a service to the providerCache named with a &lt;code&gt;Provider&lt;/code&gt; suffix and having a &lt;code&gt;$get&lt;/code&gt; member function.&lt;/p&gt;&lt;h4&gt;&lt;a name=&quot;provider&quot;&gt;&lt;/a&gt;provider&lt;/h4&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;  function provider&amp;#40;name, provider&amp;#95;&amp;#41; {
+    assertNotHasOwnProperty&amp;#40;name, 'service'&amp;#41;;
+    if &amp;#40;isFunction&amp;#40;provider&amp;#95;&amp;#41; || isArray&amp;#40;provider&amp;#95;&amp;#41;&amp;#41; {
+      provider&amp;#95; = providerInjector.instantiate&amp;#40;provider&amp;#95;&amp;#41;;
+    }
+    if &amp;#40;!provider&amp;#95;.$get&amp;#41; {
+      throw $injectorMinErr&amp;#40;'pget', &amp;quot;Provider '{0}' must define $get factory method.&amp;quot;, name&amp;#41;;
+    }
+    return providerCache&amp;#91;name + providerSuffix&amp;#93; = provider&amp;#95;;
+  }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If the given provider is a function or an array, that provider is invoked. Then we validate to ensure a $get property is included in the provider and the object is added to the &lt;code&gt;providerCache&lt;/code&gt;.&lt;/p&gt;&lt;h4&gt;&lt;a name=&quot;factory&quot;&gt;&lt;/a&gt;factory&lt;/h4&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;  function factory&amp;#40;name, factoryFn&amp;#41; { return provider&amp;#40;name, { $get: factoryFn }&amp;#41;; }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;A factory just creates a provider with a $get property that points to the passed in factory function.&lt;/p&gt;&lt;h4&gt;&lt;a name=&quot;service&quot;&gt;&lt;/a&gt;service&lt;/h4&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function service&amp;#40;name, constructor&amp;#41; {
+    return factory&amp;#40;name, &amp;#91;'$injector', function&amp;#40;$injector&amp;#41; {
+      return $injector.instantiate&amp;#40;constructor&amp;#41;;
+    }&amp;#93;&amp;#41;;
+  }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;A service creates a factory. The method is annotated to retrieve the &lt;code&gt;$injector&lt;/code&gt; object. The injector is used to instantiate the an instance of the constructor class that is passed to the service.&lt;/p&gt;&lt;h4&gt;&lt;a name=&quot;value&quot;&gt;&lt;/a&gt;value&lt;/h4&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function value&amp;#40;name, val&amp;#41; { return factory&amp;#40;name, valueFn&amp;#40;val&amp;#41;&amp;#41;; }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;A value creates a factory with a function that returns the value.&lt;/p&gt;&lt;h4&gt;&lt;a name=&quot;constant&quot;&gt;&lt;/a&gt;constant&lt;/h4&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt; function constant&amp;#40;name, value&amp;#41; {
+    assertNotHasOwnProperty&amp;#40;name, 'constant'&amp;#41;;
+    providerCache&amp;#91;name&amp;#93; = value;
+    instanceCache&amp;#91;name&amp;#93; = value;
+  }
+&lt;/code&gt;&lt;/pre&gt;Constants break the $get and provider suffix rules. The value just gets set directly in both the provider and instance caches as there is no processing that needs doing to instantiate a constant.&lt;h2&gt;&lt;/h2&gt;&lt;p&gt;So why would they implement this twin injector solution? Couldn't they mix all the instantiated and uninstantiated services into one injector? Their names are already distinguished by the &lt;code&gt;provider&lt;/code&gt; suffix on the uninstantiated services.&lt;/p&gt;&lt;p&gt;One reason is hiding functionality. Supposing you wanted to register a service with the injector directly. If you tried you would get the following:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;gt; var injector = angular.injector&amp;#40;&amp;#41;
+&amp;gt; injector.get&amp;#40;'$provide'&amp;#41;.value&amp;#40;'myValue', 3.14&amp;#41;;
+Error: &amp;#91;$injector:unpr&amp;#93; Unknown provider: $providerProvider &amp;lt;- $provider
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You only have access to the instanceInjector. When this does a lookup on the providerInjector, it adds the Provider suffix to the name. It attempts to lookup $providerProvider, which doesn't exist.&lt;/p&gt;&lt;p&gt;So if we can't access $provider how can we register our services with the Injector?&lt;/p&gt;&lt;p&gt;This is all done via modules. All services set up in angular must be attached to a particular module and this is the only way to register the service with the injector.&lt;/p&gt;&lt;p&gt;Next: &lt;a href='http://taoofcode.net/studying-the-angular-injector-loading-modules'&gt;loadModules&lt;/a&gt;&lt;/p&gt;
+</description>
+<pubDate>
+Wed, 26 Feb 2014 00:00:00 +0000
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/studying-the-angular-js-injector-instantiate/
+</guid>
+<link>
+http://taoofcode.net/studying-the-angular-js-injector-instantiate/
+</link>
+<title>
+Studying the Angular JS Injector - instantiate
+</title>
+<description>
+&lt;p&gt;(This post is part of a series &lt;a href='http://taoofcode.net/studying-the-angular-injector/'&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;&lt;p&gt;Whilst &lt;code&gt;invoke&lt;/code&gt; calls a function with it's parameters injected, &lt;code&gt;instantiate&lt;/code&gt; will contruct a new object with it's constructor parameters injected.&lt;/p&gt;&lt;p&gt;&lt;code&gt;instantiate&lt;/code&gt; gives us an excellent insight into how javascript objects work. In javascript, a class is just a function and an class instance is just a function that has been invoked with the &lt;code&gt;new&lt;/code&gt; operator.&lt;/p&gt;&lt;p&gt;Say we have a simple class :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function Person&amp;#40;firstName, lastName&amp;#41; {
+	this.firstName = firstName;
+    this.lastName = lastName;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We can add methods to this class via the functions &lt;code&gt;prototype&lt;/code&gt; property.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;Person.prototype.beNiceTo = function&amp;#40;&amp;#41; {
+	console.log&amp;#40;this.firstName + ' ' + this.lastName + ' is my friend';
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Then we can create an instance of this class with &lt;code&gt;new&lt;/code&gt;.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;gt; var plum = new Person&amp;#40;'Professor', 'Plonk'&amp;#41;;
+&amp;gt; plum.beNiceTo&amp;#40;&amp;#41;;
+Professor Plonk is my friend
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;All is good.&lt;/p&gt;&lt;p&gt;Now in order to invoke a method and inject parameters into it, the Injector takes advantage of the &lt;a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global&amp;#95;Objects/Function/apply'&gt;apply&lt;/a&gt; method. This method allows you to invoke a function and pass in an array which will become that functions parameters. &lt;/p&gt;&lt;p&gt;Very useful, but the problem with &lt;code&gt;apply&lt;/code&gt; is that it only works when you want to call a function. There is no way to mix &lt;code&gt;new&lt;/code&gt; with &lt;code&gt;apply&lt;/code&gt;. The Injector gets around this problem in a pretty clever way.&lt;/p&gt;&lt;p&gt;Lets look at the code.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function instantiate&amp;#40;Type, locals&amp;#41; {
+      var Constructor = function&amp;#40;&amp;#41; {},
+          instance, returnedValue;
+
+      // Check if Type is annotated and use just the given function at n-1 as parameter
+      // e.g. someModule.factory&amp;#40;'greeter', &amp;#91;'$window', function&amp;#40;renamed$window&amp;#41; {}&amp;#93;&amp;#41;;
+      Constructor.prototype = &amp;#40;isArray&amp;#40;Type&amp;#41; ? Type&amp;#91;Type.length - 1&amp;#93; : Type&amp;#41;.prototype;
+      instance = new Constructor&amp;#40;&amp;#41;;
+      returnedValue = invoke&amp;#40;Type, instance, locals&amp;#41;;
+
+      return isObject&amp;#40;returnedValue&amp;#41; || isFunction&amp;#40;returnedValue&amp;#41; ? returnedValue : instance;
+    }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;First we create a new, completely empty, object called &lt;code&gt;Constructor&lt;/code&gt;.&lt;/p&gt;&lt;p&gt;If we had passed the above Person class into this method (into the Type parameter) we would then have these two classes:&lt;/p&gt;&lt;pre&gt;&lt;code&gt;+--------------+ +---------------+
+|  beNiceTo    | |               |
++--------------+ +---------------+
+       &amp;#94;                 &amp;#94;
+       |                 |
+       |    Prototype    |
+       |                 |
++------+-------+ +-------+-------+
+|  Type        | | Constructor   |
+|--------------| |---------------|
+|              | |               |
+|              | |               |
++--------------+ +---------------+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Next, we set our Constructors prototype to this new Constructors prototype. Copying methods between class prototypes is completely legal to do in javascript - it really is a very malleable language. Note, if Type is an array, this means that it is actually an annotated array - &lt;code&gt;&amp;#91;'$scope', function&amp;#40;$scope&amp;#41; { }&amp;#93;&lt;/code&gt; and the classes constructor function is actually the last element of the array.&lt;/p&gt;&lt;p&gt;We now have these two classes :&lt;/p&gt;&lt;pre&gt;&lt;code&gt;+--------------+
+|  beNiceTo    | +-------+
++--------------+         |
+       &amp;#94;                 |
+       |                 |
+       |    Prototype    |
+       |                 |
++------+-------+ +-------+-------+
+|  Type        | | Constructor   |
+|--------------| |---------------|
+|              | |               |
+|              | |               |
++--------------+ +---------------+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;An instance of this class is then created. This doesn't do too much yet. It creates an object with our Types instance methods, but it hasn't actually invoked the constructor yet.&lt;/p&gt;&lt;pre&gt;&lt;code&gt;+--------------+
+|  beNiceTo    | +-------+
++--------------+         |
+       &amp;#94;                 |
+       |                 |
+       |    Prototype    |
+       |                 |
++------+-------+ +-------+-------+
+|  Type        | | Constructor   |
+|--------------| |---------------|
+|              | |               |
+|              | |               |
++--------------+ +---------------+
+                         &amp;#94;
+                         |
+                         |
+                 +-------+-------+
+                 |   Instance    |
+                 |---------------|
+                 |               |
+                 |               |
+                 +---------------+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We still need to invoke this constructor and inject the parameters into it. To do this we call &lt;code&gt;invoke&lt;/code&gt; with our type as normal. &lt;/p&gt;&lt;p&gt;There is one significant difference - we pass the new Constructor instance that we have just created. When &lt;code&gt;invoke&lt;/code&gt; calls the method with the injected parameters it does this using &lt;code&gt;fn.apply&amp;#40;self, args&amp;#41;&lt;/code&gt;. Looking back at the &lt;a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global&amp;#95;Objects/Function/apply'&gt;apply&lt;/a&gt; documentation, the first parameter sent will become the &lt;code&gt;this&lt;/code&gt; variable in the function. So, by invoking with our newly created class, the constructor is called against it.&lt;/p&gt;&lt;p&gt;So we have managed to create our new class without ever actually calling &lt;code&gt;new&lt;/code&gt; on it.&lt;/p&gt;&lt;pre&gt;&lt;code&gt;+--------------+
+|  beNiceTo    | +-------+
++--------------+         |
+       &amp;#94;                 |
+       |                 |
+       |    Prototype    |
+       |                 |
++------+-------+ +-------+-------+
+|  Type        | | Constructor   |
+|--------------| |---------------|
+|              | |               |
+|              | |               |
++--------------+ +---------------+
+                         &amp;#94;
+                         |
+                         |
+                 +-------+-------+
+                 |   Instance    |
+                 |---------------|
+                 | Professor     |
+                 | Plonk         |
+                 +---------------+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This instance with injected parameters is then returned.&lt;/p&gt;&lt;p&gt;Next, we will tie everything together by looking at how the Injector is set up: &lt;a href='http://taoofcode.net/studying-the-angular-injector-the-twin-injectors'&gt;the twin injectors&lt;/a&gt;&lt;/p&gt;
+</description>
+<pubDate>
+Mon, 24 Feb 2014 00:00:00 +0000
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/studying-the-angular-injector-invoke/
+</guid>
+<link>
+http://taoofcode.net/studying-the-angular-injector-invoke/
+</link>
+<title>
+Studying the Angular JS Injector - invoke
+</title>
+<description>
+&lt;p&gt;(This post is part of a series &lt;a href='http://taoofcode.net/studying-the-angular-injector/'&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;&lt;p&gt;The invoke method invokes the given function with the parameters injected.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function invoke&amp;#40;fn, self, locals&amp;#41;{
+      var args = &amp;#91;&amp;#93;,
+          $inject = annotate&amp;#40;fn&amp;#41;,
+          length, i,
+          key;
+
+      for&amp;#40;i = 0, length = $inject.length; i &amp;lt; length; i++&amp;#41; {
+        key = $inject&amp;#91;i&amp;#93;;
+        if &amp;#40;typeof key !== 'string'&amp;#41; {
+          throw $injectorMinErr&amp;#40;'itkn',
+                  'Incorrect injection token! Expected service name as string, got {0}', key&amp;#41;;
+        }
+        args.push&amp;#40;
+          locals &amp;amp;&amp;amp; locals.hasOwnProperty&amp;#40;key&amp;#41;
+          ? locals&amp;#91;key&amp;#93;
+          : getService&amp;#40;key&amp;#41;
+        &amp;#41;;
+      }
+      if &amp;#40;!fn.$inject&amp;#41; {
+        // this means that we must be an array.
+        fn = fn&amp;#91;length&amp;#93;;
+      }
+
+      // http://jsperf.com/angularjs-invoke-apply-vs-switch
+      // #5388
+      return fn.apply&amp;#40;self, args&amp;#41;;
+    }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The first thing to note is that this method actually takes three parameters, the Angular documentation only mentions the first one.&lt;/p&gt;&lt;p&gt;Invoke first &lt;a href='http://taoofcode.net/studying-the-angular-injector-annotate/'&gt;annotates&lt;/a&gt; the method to get a list of its parameters.&lt;/p&gt;&lt;p&gt;Each of these parameters are then validated to ensure they are a String. Then &lt;code&gt;invoke&lt;/code&gt; locates the value to inject into the method with this code :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt; args.push&amp;#40;
+          locals &amp;amp;&amp;amp; locals.hasOwnProperty&amp;#40;key&amp;#41;
+          ? locals&amp;#91;key&amp;#93;
+          : getService&amp;#40;key&amp;#41;
+        &amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;First, we look to see if the value is found in the &lt;code&gt;locals&lt;/code&gt; parameter. &lt;a href='http://docs.angularjs.org/api/ngRoute/provider/$routeProvider'&gt;$routeProvider&lt;/a&gt; uses this in &lt;code&gt;route.resolve&lt;/code&gt; where you can setup additional dependencies to inject into the controller.&lt;/p&gt;&lt;p&gt;It is also possible to use this to override the registered service. Handy for unit testing.&lt;/p&gt;&lt;p&gt;If the value is not found in &lt;code&gt;locals&lt;/code&gt;, &lt;code&gt;getService&lt;/code&gt; is called to attempt to locate it.&lt;/p&gt;&lt;p&gt;Once all parameters are retrieved, the function is called with these parameters using &lt;a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global&amp;#95;Objects/Function/apply'&gt;apply&lt;/a&gt; and its result is returned.&lt;/p&gt;&lt;p&gt;Next: &lt;a href='http://taoofcode.net/studying-the-angular-injector-getservice'&gt;getService&lt;/a&gt;&lt;/p&gt;
+</description>
+<pubDate>
+Mon, 24 Feb 2014 00:00:00 +0000
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/studying-the-angular-injector-getservice/
+</guid>
+<link>
+http://taoofcode.net/studying-the-angular-injector-getservice/
+</link>
+<title>
+Studying the Angular JS Injector - getService
+</title>
+<description>
+&lt;p&gt;(This post is part of a series &lt;a href='http://taoofcode.net/studying-the-angular-injector/'&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;&lt;p&gt;The &lt;code&gt;getService&lt;/code&gt; function is the work-horse of &lt;code&gt;invoke&lt;/code&gt;. This is the method that takes a service name and attempts to locate it in the list of registered services.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;	function getService&amp;#40;serviceName&amp;#41; {
+      if &amp;#40;cache.hasOwnProperty&amp;#40;serviceName&amp;#41;&amp;#41; {
+        if &amp;#40;cache&amp;#91;serviceName&amp;#93; === INSTANTIATING&amp;#41; {
+          throw $injectorMinErr&amp;#40;'cdep', 'Circular dependency found: {0}', path.join&amp;#40;' &amp;lt;- '&amp;#41;&amp;#41;;
+        }
+        return cache&amp;#91;serviceName&amp;#93;;
+      } else {
+        try {
+          path.unshift&amp;#40;serviceName&amp;#41;;
+          cache&amp;#91;serviceName&amp;#93; = INSTANTIATING;
+          return cache&amp;#91;serviceName&amp;#93; = factory&amp;#40;serviceName&amp;#41;;
+        } catch &amp;#40;err&amp;#41; {
+          if &amp;#40;cache&amp;#91;serviceName&amp;#93; === INSTANTIATING&amp;#41; {
+            delete cache&amp;#91;serviceName&amp;#93;;
+          }
+          throw err;
+        } finally {
+          path.shift&amp;#40;&amp;#41;;
+        }
+      }
+    }
+&lt;/code&gt;&lt;/pre&gt;When the injector is created it is passed two parameters, &lt;code&gt;cache&lt;/code&gt; and &lt;code&gt;factory&lt;/code&gt;. These are critical and we will break these down soon. For now the cache is a list of services that have been instantiated and factory is a method that instantiates a service given it's name.&lt;p&gt;If the service already exists in the cache, it looks to see if the service is actually the &lt;code&gt;INSTANTIATING&lt;/code&gt; placeholder. If it is, this means that whilst instantiating this service it has invoked another service that is then trying to instantiate this one again - a circular dependency. The injector can't deal with this so it throws an error. Otherwise the service is just returned.&lt;/p&gt;&lt;p&gt;If the service is not in the cache it needs to be instantiated.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;	path.unshift&amp;#40;serviceName&amp;#41;;
+    cache&amp;#91;serviceName&amp;#93; = INSTANTIATING;
+    return cache&amp;#91;serviceName&amp;#93; = factory&amp;#40;serviceName&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The service name is added to the beginning of the &lt;code&gt;path&lt;/code&gt; array. This is just an array used to keep track of the route taken through services as the injector instantiates them. It is used to report useful error messages when something goes wrong.&lt;/p&gt;&lt;p&gt;The entry in the cache for this service is created and first gets set to this INSTANTIATING placeholder. The &lt;code&gt;factory&lt;/code&gt; function is then called to created our service, its result is stored in the cache and the value is returned.&lt;/p&gt;&lt;p&gt;Next: &lt;a href='http://taoofcode.net/studying-the-angular-js-injector-instantiate'&gt;instantiate&lt;/a&gt;&lt;/p&gt;
+</description>
+<pubDate>
+Mon, 24 Feb 2014 00:00:00 +0000
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/studying-the-angular-injector/
+</guid>
+<link>
+http://taoofcode.net/studying-the-angular-injector/
+</link>
+<title>
+Studying the Angular JS Injector - intro
+</title>
+<description>
+&lt;p&gt;I am truly impressed with the elegance of AngularJS and have been studying the source code to fully understand it. In this series I will be studying the Injector module as this is one of the core modules around which the rest of the framework revolves.&lt;/p&gt;&lt;p&gt;In &lt;a href='https://github.com/angular/angular.js/blob/481508d0e7ae9e4984ea380b9a43e589551c7a5b/src/auto/injector.js'&gt;src/auto/injector.js&lt;/a&gt; there is a method &lt;code&gt;createInjector&lt;/code&gt;. It is this method that kicks off the whole process.&lt;/p&gt;&lt;p&gt;After a bit of setup this method returns an &lt;code&gt;instanceInjector&lt;/code&gt; object.&lt;/p&gt;&lt;h3&gt;&lt;a name=&quot;instanceinjector&quot;&gt;&lt;/a&gt;instanceInjector&lt;/h3&gt;The injector is an object with the following functions:&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;	return {
+      invoke: invoke,
+      instantiate: instantiate,
+      get: getService,
+      annotate: annotate,
+      has: function&amp;#40;name&amp;#41; {
+        return providerCache.hasOwnProperty&amp;#40;name + providerSuffix&amp;#41; || cache.hasOwnProperty&amp;#40;name&amp;#41;;
+      }
+    };
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;First we go through these methods in turn.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;a href='http://taoofcode.net/studying-the-angular-injector-annotate'&gt;annotate&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href='http://taoofcode.net/studying-the-angular-injector-invoke'&gt;invoke&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href='http://taoofcode.net/studying-the-angular-injector-getservice'&gt;get&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href='http://taoofcode.net/studying-the-angular-js-injector-instantiate'&gt;instantiate&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Then we tie it all together by looking closer at the createInjector method to see how the injector is setup and used : &lt;a href='studying-the-angular-injector-the-twin-injectors'&gt;the twin injectors&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Finally we look into how a module is loaded and the services are registered with the injectors: &lt;a href='http://taoofcode.net/studying-the-angular-injector-loading-modules'&gt;loadModules&lt;/a&gt;&lt;/p&gt;
+</description>
+<pubDate>
+Wed, 19 Feb 2014 00:00:00 +0000
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/studying-the-angular-injector-annotate/
+</guid>
+<link>
+http://taoofcode.net/studying-the-angular-injector-annotate/
+</link>
+<title>
+Studying the Angular JS Injector - annotate
+</title>
+<description>
+&lt;p&gt;(This post is part of a series &lt;a href='http://taoofcode.net/studying-the-angular-injector/'&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;&lt;p&gt;In order for the Injector to know what to inject into a given functions parameters, it needs a list of these parameters. This is what the &lt;code&gt;annotate&lt;/code&gt; function does.&lt;/p&gt;&lt;p&gt;There are three different ways in Angular to annotate your methods.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Use an array. The last element of the array is the function, the rest is a list of the parameter names.&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;#91;'$scope', '$q', function&amp;#40;$scope, $q&amp;#41; {}
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;&lt;li&gt;Add a &lt;code&gt;$inject&lt;/code&gt; property to the function containing a list of the parameters.&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function myFunction&amp;#40;$scope, $q&amp;#41; {}
+myFunction.$inject = &amp;#91;'$scope', '$q'&amp;#93;;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;&lt;li&gt;Nothing at all. Angular can parse the parameters straight out of the function. This does not work when your code is minified since the minification renames your parameters to the smallest length possible.&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function myFunction&amp;#40;$scope, $q&amp;#41; {}
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Lets look at the code.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var FN&amp;#95;ARGS = /&amp;#94;function\s&amp;#42;&amp;#91;&amp;#94;\&amp;#40;&amp;#93;&amp;#42;\&amp;#40;\s&amp;#42;&amp;#40;&amp;#91;&amp;#94;\&amp;#41;&amp;#93;&amp;#42;&amp;#41;\&amp;#41;/m;
+var FN&amp;#95;ARG&amp;#95;SPLIT = /,/;
+var FN&amp;#95;ARG = /&amp;#94;\s&amp;#42;&amp;#40;&amp;#95;?&amp;#41;&amp;#40;\S+?&amp;#41;\1\s&amp;#42;$/;
+var STRIP&amp;#95;COMMENTS = /&amp;#40;&amp;#40;\/\/.&amp;#42;$&amp;#41;|&amp;#40;\/\&amp;#42;&amp;#91;\s\S&amp;#93;&amp;#42;?\&amp;#42;\/&amp;#41;&amp;#41;/mg;
+var $injectorMinErr = minErr&amp;#40;'$injector'&amp;#41;;
+function annotate&amp;#40;fn&amp;#41; {
+  var $inject,
+      fnText,
+      argDecl,
+      last;
+
+  if &amp;#40;typeof fn == 'function'&amp;#41; {
+    if &amp;#40;!&amp;#40;$inject = fn.$inject&amp;#41;&amp;#41; {
+      $inject = &amp;#91;&amp;#93;;
+      if &amp;#40;fn.length&amp;#41; {
+        fnText = fn.toString&amp;#40;&amp;#41;.replace&amp;#40;STRIP&amp;#95;COMMENTS, ''&amp;#41;;
+        argDecl = fnText.match&amp;#40;FN&amp;#95;ARGS&amp;#41;;
+        forEach&amp;#40;argDecl&amp;#91;1&amp;#93;.split&amp;#40;FN&amp;#95;ARG&amp;#95;SPLIT&amp;#41;, function&amp;#40;arg&amp;#41;{
+          arg.replace&amp;#40;FN&amp;#95;ARG, function&amp;#40;all, underscore, name&amp;#41;{
+            $inject.push&amp;#40;name&amp;#41;;
+          }&amp;#41;;
+        }&amp;#41;;
+      }
+      fn.$inject = $inject;
+    }
+  } else if &amp;#40;isArray&amp;#40;fn&amp;#41;&amp;#41; {
+    last = fn.length - 1;
+    assertArgFn&amp;#40;fn&amp;#91;last&amp;#93;, 'fn'&amp;#41;;
+    $inject = fn.slice&amp;#40;0, last&amp;#41;;
+  } else {
+    assertArgFn&amp;#40;fn, 'fn', true&amp;#41;;
+  }
+  return $inject;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;annotate&lt;/code&gt; is passed either an array or a function.&lt;/p&gt;&lt;p&gt;If an array has been passed into &lt;code&gt;annotate&lt;/code&gt;, it is assumed to be in the first form (&lt;code&gt;&amp;#91;'$scope', function&amp;#40;$scope&amp;#41; {..&lt;/code&gt;). In this case, we assert that the last element in the array is a function and then remove that element returning the array.&lt;/p&gt;&lt;p&gt;If it is just a function passed in, first it checks if the function has already been annotated by setting a &lt;code&gt;$inject&lt;/code&gt; property.&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;    if &amp;#40;!&amp;#40;$inject = fn.$inject&amp;#41;&amp;#41; {
+ &lt;/code&gt;&lt;/pre&gt;&lt;/p&gt;&lt;p&gt;If it hasn't been, we need to extract the parameters from the function definition itself. This part of the code gives us an enjoyable journey through the power of regular expressions.&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;      $inject = &amp;#91;&amp;#93;;
+      if &amp;#40;fn.length&amp;#41; {
+        fnText = fn.toString&amp;#40;&amp;#41;.replace&amp;#40;STRIP&amp;#95;COMMENTS, ''&amp;#41;;
+        argDecl = fnText.match&amp;#40;FN&amp;#95;ARGS&amp;#41;;
+        forEach&amp;#40;argDecl&amp;#91;1&amp;#93;.split&amp;#40;FN&amp;#95;ARG&amp;#95;SPLIT&amp;#41;, function&amp;#40;arg&amp;#41;{
+          arg.replace&amp;#40;FN&amp;#95;ARG, function&amp;#40;all, underscore, name&amp;#41;{
+            $inject.push&amp;#40;name&amp;#41;;
+          }&amp;#41;;
+        }&amp;#41;;
+      }
+ &lt;/code&gt;&lt;/pre&gt;&lt;/p&gt;&lt;p&gt;Angular takes advantage of the fact that calling &lt;code&gt;toString&amp;#40;&amp;#41;&lt;/code&gt; on a function definition returns the full text of the function. We can see this in the nodejs repl:&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;gt; var x = function&amp;#40;a,b,c&amp;#41; { };
+undefined
+&amp;gt; x.toString&amp;#40;&amp;#41;;
+'function&amp;#40;a,b,c&amp;#41; { }'
+ &lt;/code&gt;&lt;/pre&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;toString&amp;#40;&amp;#41;&lt;/code&gt; returns the function exactly as it has been entered in the script, including comments.&lt;/p&gt;&lt;p&gt;These comments get in the way of parsing the parameters, so first the method strips any comments from the function. Anything that matches the regex &lt;code&gt;/&amp;#40;&amp;#40;\/\/.&amp;#42;$&amp;#41;|&amp;#40;\/&amp;amp;#42;&amp;#91;\s\S&amp;#93;&amp;#42;?&amp;amp;#42;\/&amp;#41;&amp;#41;/mg&lt;/code&gt; is removed. The first part of that regex (&lt;code&gt;&amp;#40;\/\/.&amp;#42;$&amp;#41;&lt;/code&gt;) matches anything starting with // up to the end of the line. The second part (&lt;code&gt;&amp;#40;\/&amp;amp;#42;&amp;#91;\s\S&amp;#93;&amp;#42;?&amp;amp;#42;\/&amp;#41;&lt;/code&gt;) matches anything between a /&lt;em&gt; and &lt;/em&gt;/. &lt;/p&gt;&lt;p&gt;Let's see if this works :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;gt;var fn = function&amp;#40;c/&amp;#42;a parameter&amp;#42;/, a, // More parameters
+...                 /&amp;#42; Interesting &amp;#42;/ r&amp;#41; { };
+&amp;gt; fn.toString&amp;#40;&amp;#41;.replace&amp;#40;/&amp;#40;&amp;#40;\/\/.&amp;#42;$&amp;#41;|&amp;#40;\/\&amp;#42;&amp;#91;\s\S&amp;#93;&amp;#42;?\&amp;#42;\/&amp;#41;&amp;#41;/mg, ''&amp;#41;;
+'function &amp;#40;c, a,
+                  r&amp;#41; { }'
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It works, the comments are stripped out.&lt;/p&gt;&lt;p&gt;Next it pulls out the argument list with the regex match : &lt;code&gt;/&amp;#94;function\s&amp;#42;&amp;#91;&amp;#94;&amp;amp;#40;&amp;#93;&amp;#42;&amp;amp;#40;\s&amp;#42;&amp;#40;&amp;#91;&amp;#94;&amp;amp;#41;&amp;#93;&amp;#42;&amp;#41;&amp;amp;#41;/m&lt;/code&gt;&lt;/p&gt;&lt;p&gt;This regex is bordering on the complex. Let's break it down.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;&lt;sup&gt;&lt;/strong&gt;&lt;/sup&gt; : From the start of the string&lt;/li&gt;&lt;li&gt;&lt;strong&gt;function&lt;/strong&gt; : match the text &lt;em&gt;function&lt;/em&gt;&lt;/li&gt;&lt;li&gt;**\s*** : any amount of whitespace&lt;/li&gt;&lt;li&gt;**[&lt;sup&gt;&amp;#92;(]***&lt;/sup&gt; : any character that is not a '('. This will be whitespace and the function name.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;&amp;#92;(&lt;/strong&gt; : the '(' character. Note ( is a special char in regular expressions, so the '\' is needed to escape it and make the regex treat it as a real character.&lt;/li&gt;&lt;li&gt;**\s*** : more whitespace&lt;/li&gt;&lt;li&gt;&lt;strong&gt;([&lt;sup&gt;&amp;#41;]*)&lt;/strong&gt;&lt;/sup&gt; : Any character that is not a ')'. Also note that this part of the pattern is within '(' and ')'. This is a group and means we are especially interested in what is matched here.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;&amp;#41;&lt;/strong&gt; : The closing ')'. &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Does it work?&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;&amp;gt;fnText.match&amp;#40;/&amp;#94;function\s&amp;#42;&amp;#91;&amp;#94;\&amp;#40;&amp;#93;&amp;#42;\&amp;#40;\s&amp;#42;&amp;#40;&amp;#91;&amp;#94;\&amp;#41;&amp;#93;&amp;#42;&amp;#41;\&amp;#41;/m&amp;#41;
+&amp;#91; 'function &amp;#40;c, a, \r\n                  r&amp;#41;',
+  'c, a, \r\n                  r',
+  index: 0,
+  input: 'function &amp;#40;c, a, \r\n                  r&amp;#41; { }' &amp;#93;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;match&lt;/code&gt; returns an array of the matches found by the regex. The first element in the array is the whole text matched. Each ensuing element is each group found within the regex. The group matched here is anything between the brackets after the text 'function'. In this case it is the text &lt;code&gt;'c, a, \r\n                  r',&lt;/code&gt; which is our parameter list (plus the newlines and white space).&lt;/p&gt;&lt;p&gt;The code then splits this string at the commas. For each of these then does a further call to replace.&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;arg.replace&amp;#40;FN&amp;#95;ARG, function&amp;#40;all, underscore, name&amp;#41;{
+            $inject.push&amp;#40;name&amp;#41;;
+          }&amp;#41;;
+ &lt;/code&gt;&lt;/pre&gt;&lt;/p&gt;&lt;p&gt;Now looking at the documentation for &lt;a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global&amp;#95;Objects/String/replace'&gt;replace&lt;/a&gt; you are supposed to call this function with the search string and a function which is supposed to return the string that you replace it with. This code doesn't do this. Instead it just takes the matched string and pushes it into the &lt;code&gt;$inject&lt;/code&gt; array, ignoring any return value. An interesting and neat way to find matches within text.&lt;/p&gt;&lt;p&gt;Lets look at the regex used to match these parameters &lt;code&gt;/&amp;#94;\s&amp;#42;&amp;#40;&amp;#95;?&amp;#41;&amp;#40;\S+?&amp;#41;\1\s&amp;#42;$/&lt;/code&gt; :&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;&lt;sup&gt;&lt;/strong&gt;&lt;/sup&gt; : the beginning of the parameter text&lt;/li&gt;&lt;li&gt;**&amp;#92;s*** : any amount of whitespace&lt;/li&gt;&lt;li&gt;&lt;strong&gt;(&lt;b&gt;?)&lt;/strong&gt; : 0 or more '&lt;/b&gt;' characters.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;(\S+?)&lt;/strong&gt; : 1 or more non-whitespace characters. The ? makes it a lazy match, it will match as few characters as possible - so this will stop matching when we get to the underscores defined in the next section.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;\1&lt;/strong&gt; : This matchs the substring that is the same as that in group 1. This is the underscores. The effect of this is to ensure that if our parameter starts with a certain number of _ characters that it will end with the same amount.&lt;/li&gt;&lt;li&gt;**\s*** : any amount of whitespace&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;An interesting point to take away from this pattern is that in your Angular module you can surround your parameters with any number of underscores and (as long as there is the same amount on either side) these will not be included in the annotation and consequent service location.&lt;/p&gt;&lt;p&gt;Phew, that's a lot of regex.&lt;/p&gt;&lt;p&gt;We should now have a list of the parameters which the injector can then use to locate the values to inject into our function.&lt;/p&gt;&lt;p&gt;Next: &lt;a href='http://taoofcode.net/studying-the-angular-injector-invoke'&gt;invoke&lt;/a&gt;&lt;/p&gt;
+</description>
+<pubDate>
+Wed, 19 Feb 2014 00:00:00 +0000
+</pubDate>
+</item>
+<item>
+<guid>
+http://taoofcode.net/promise-anti-patterns/
+</guid>
+<link>
+http://taoofcode.net/promise-anti-patterns/
+</link>
+<title>
+Promise Anti-patterns
+</title>
+<description>
+&lt;p&gt; Promises are very simple once you get your head around them, but there are a few gotchas that can leave you with your head scratching. Here are a few that got me.&lt;h2&gt;&lt;/h2&gt;&lt;/p&gt;&lt;h2&gt;&lt;a name=&quot;nested&amp;#95;promises&quot;&gt;&lt;/a&gt;Nested Promises&lt;/h2&gt;&lt;p&gt;You get a whole bundle of promises nested in eachother:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;loadSomething&amp;#40;&amp;#41;.then&amp;#40;function&amp;#40;something&amp;#41; {
+	loadAnotherthing&amp;#40;&amp;#41;.then&amp;#40;function&amp;#40;another&amp;#41; {
+                	DoSomethingOnThem&amp;#40;something, another&amp;#41;;
+	}&amp;#41;;
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;The reason you've done this is because you need to do something with the results of both promises, so you can't chain them since the &lt;code&gt;then&amp;#40;&amp;#41;&lt;/code&gt; is only passed the result of the previous return.&lt;p&gt;The real reason you've done this is because you don't know about the &lt;code&gt;all&amp;#40;&amp;#41;&lt;/code&gt; method.&lt;/p&gt;&lt;p&gt;To fix :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;q.all&amp;#40;&amp;#91;loadSomething&amp;#40;&amp;#41;, loadAnotherThing&amp;#40;&amp;#41;&amp;#93;&amp;#41;
+	.spread&amp;#40;function&amp;#40;something, another&amp;#41; {
+		DoSomethingOnThem&amp;#40;something, another&amp;#41;;
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;Much simpler. The promise returned by &lt;code&gt;q.all&lt;/code&gt; will resolve with an array of the results that is passed to &lt;code&gt;then&amp;#40;&amp;#41;&lt;/code&gt;. The &lt;code&gt;spread&amp;#40;&amp;#41;&lt;/code&gt; method will split this array up amongst the parameters.&lt;h2&gt;&lt;/h2&gt;&lt;h2&gt;&lt;a name=&quot;the&amp;#95;broken&amp;#95;chain&quot;&gt;&lt;/a&gt;The Broken Chain&lt;/h2&gt;&lt;p&gt;You have code like :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function anAsyncCall&amp;#40;&amp;#41; {
+	var promise = doSomethingAsync&amp;#40;&amp;#41;;
+	promise.then&amp;#40;function&amp;#40;&amp;#41; {
+    	somethingComplicated&amp;#40;&amp;#41;;
+    }&amp;#41;;
+    
+	return promise;
+}
+&lt;/code&gt;&lt;/pre&gt;The problem here is that any error raised in the &lt;code&gt;somethingComplicated&amp;#40;&amp;#41;&lt;/code&gt; method will not get caught. Promises are meant to be chained - each call to &lt;code&gt;then&amp;#40;&amp;#41;&lt;/code&gt; returns a new promise. It is this promise that the next &lt;code&gt;then&amp;#40;&amp;#41;&lt;/code&gt; should be called against. Generally the final call will be a &lt;code&gt;catch&amp;#40;&amp;#41;&lt;/code&gt;, any errors that are raised anywhere in the chain will be handled here.&lt;p&gt;In the above code the chain gets broken when you return the first promise rather than the result of the final &lt;code&gt;then&amp;#40;&amp;#41;&lt;/code&gt;.&lt;/p&gt;&lt;p&gt;The fix:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function anAsyncCall&amp;#40;&amp;#41; {
+	var promise = doSomethingAsync&amp;#40;&amp;#41;;
+	return promise.then&amp;#40;function&amp;#40;&amp;#41; {
+    	somethingComplicated&amp;#40;&amp;#41;
+    }&amp;#41;;   
+}
+&lt;/code&gt;&lt;/pre&gt;Always return the result of the final &lt;code&gt;then&amp;#40;&amp;#41;&lt;/code&gt;.&lt;h2&gt;&lt;/h2&gt;&lt;h2&gt;&lt;a name=&quot;the&amp;#95;collection&amp;#95;kerfuffle&quot;&gt;&lt;/a&gt;The Collection Kerfuffle&lt;/h2&gt;&lt;p&gt;You have an array of items and you want to do something asynchronous on each of them. So you find yourself doing something involving recursion.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function workMyCollection&amp;#40;arr&amp;#41; {
+	var resultArr = &amp;#91;&amp;#93;;
+	function &amp;#95;recursive&amp;#40;idx&amp;#41; {
+		if &amp;#40;idx &amp;gt;= resultArr.length&amp;#41; return resultArr;
+            
+		return doSomethingAsync&amp;#40;arr&amp;#91;idx&amp;#93;&amp;#41;.then&amp;#40;function&amp;#40;res&amp;#41; {
+			resultArr.push&amp;#40;res&amp;#41;;
+			return &amp;#95;recursive&amp;#40;idx + 1&amp;#41;;
+		}&amp;#41;;
+	}
+
+	return &amp;#95;recursive&amp;#40;0&amp;#41;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Ug, the code is hardly intuitive. The problem is that chaining methods when you don't know how many to chain can be painful. That is until you remember &lt;code&gt;map&amp;#40;&amp;#41;&lt;/code&gt; and &lt;code&gt;reduce&amp;#40;&amp;#41;&lt;/code&gt;.&lt;/p&gt;&lt;p&gt;To fix:&lt;/p&gt;&lt;p&gt;Remember &lt;code&gt;q.all&lt;/code&gt; takes an array of promises and resolves to an array of the results. We can simply map the async calls to their results as follows :&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function workMyCollection&amp;#40;arr&amp;#41; {
+	return q.all&amp;#40;arr.map&amp;#40;function&amp;#40;item&amp;#41; {
+		return doSomethingAsync&amp;#40;item&amp;#41;;
+	}&amp;#41;&amp;#41;;    
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Unlike the recursive non-solution, this will kick off all the async calls in parallel. Obviously much more time efficient.&lt;/p&gt;&lt;p&gt;If you need to run your promises in series, you can use reduce.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;function workMyCollection&amp;#40;arr&amp;#41; {
+	return arr.reduce&amp;#40;function&amp;#40;promise, item&amp;#41; {
+		return promise.then&amp;#40;function&amp;#40;result&amp;#41; {
+			return doSomethingAsyncWithResult&amp;#40;item, result&amp;#41;;
+		}&amp;#41;;        
+	}, q&amp;#40;&amp;#41;&amp;#41;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Not quite as tidy, but certainly tidier.&lt;h2&gt;&lt;/h2&gt;&lt;/p&gt;&lt;h2&gt;&lt;a name=&quot;the&amp;#95;ghost&amp;#95;promise&quot;&gt;&lt;/a&gt;The Ghost Promise&lt;/h2&gt;&lt;p&gt;A certain method needs to do something asynchronous and sometimes it doesn't. So you create a promise even when you don't need one just to keep the two code paths consistent.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var promise;
+if &amp;#40;asyncCallNeeded&amp;#41; 
+	promise = doSomethingAsync&amp;#40;&amp;#41;;
+else
+	promise = Q.resolve&amp;#40;42&amp;#41;;
+        
+promise.then&amp;#40;function&amp;#40;&amp;#41; {
+	doSomethingCool&amp;#40;&amp;#41;;
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Not the worst anti-pattern here, but there is definitely a cleaner way - wrap the 'value or promise' with &lt;code&gt;Q&amp;#40;&amp;#41;&lt;/code&gt;. This method will take either a value or a promise and act accordingly.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;Q&amp;#40;asyncCallNeeded ? doSomethingAsync&amp;#40;&amp;#41; : 42&amp;#41;
+	.then&amp;#40;
+		function&amp;#40;value&amp;#41;{
+			doSomethingGood&amp;#40;&amp;#41;;
+		}&amp;#41;
+    .catch&amp;#40; 
+		function&amp;#40;err&amp;#41; {
+			handleTheError&amp;#40;&amp;#41;;
+		}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;em&gt;Note: I was originally advising using Q.when there. Thankfully Kris Kowal has put me straight in the comments below. Don't use Q.when, just use Q() - it is much cleaner.&lt;/em&gt;&lt;h2&gt;&lt;/h2&gt;&lt;/p&gt;&lt;h2&gt;&lt;a name=&quot;the&amp;#95;overly&amp;#95;keen&amp;#95;error&amp;#95;handler&quot;&gt;&lt;/a&gt;The Overly Keen Error Handler&lt;/h2&gt;&lt;p&gt;The &lt;code&gt;then&amp;#40;&amp;#41;&lt;/code&gt; method takes two parameters, the fulfilled handler and the rejected handler. You might be tempted to do something like this:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;somethingAsync.then&amp;#40;
+	function&amp;#40;&amp;#41; {
+		return somethingElseAsync&amp;#40;&amp;#41;;
+	},
+	function&amp;#40;err&amp;#41; {
+		handleMyError&amp;#40;err&amp;#41;;
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The problem with this is that any errors occurring in the fulfilled handler does not get passed to the error handler.&lt;/p&gt;&lt;p&gt;To fix, make sure the error handler is in a separate then :     &lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;somethingAsync
+	.then&amp;#40;function&amp;#40;&amp;#41; {
+    	return somethingElseAsync&amp;#40;&amp;#41;;
+	}&amp;#41;
+    .then&amp;#40;null,
+		function&amp;#40;err&amp;#41; {
+			handleMyError&amp;#40;err&amp;#41;;
+		}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Or use &lt;code&gt;catch&amp;#40;&amp;#41;&lt;/code&gt;:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;somethingAsync
+	.then&amp;#40;function&amp;#40;&amp;#41; {
+		return somethingElseAsync&amp;#40;&amp;#41;;
+	}&amp;#41;
+	.catch&amp;#40;function&amp;#40;err&amp;#41; {
+		handleMyError&amp;#40;err&amp;#41;;
+	}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;This ensures any errors occuring in the chain will get handled.&lt;h2&gt;&lt;/h2&gt;&lt;h2&gt;&lt;a name=&quot;the&amp;#95;forgotten&amp;#95;promise&quot;&gt;&lt;/a&gt;The Forgotten Promise&lt;/h2&gt;You call a method that returns a promise. However, you forget about this promise and create your own one.&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;var deferred = Q.defer&amp;#40;&amp;#41;;
+doSomethingAsync&amp;#40;&amp;#41;.then&amp;#40;function&amp;#40;res&amp;#41; {
+	res = manipulateMeInSomeWay&amp;#40;res&amp;#41;;
+	deferred.resolve&amp;#40;res&amp;#41;;
+}, function&amp;#40;err&amp;#41; {
+	deferred.reject&amp;#40;err&amp;#41;;
+}&amp;#41;;
+    
+return deferred.promise;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This really is defeating the point of promises - simplicity. A lot of pointless code here.&lt;/p&gt;&lt;p&gt;To fix, just return the promise.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot;&gt;return doSomethingAsync&amp;#40;&amp;#41;.then&amp;#40;function&amp;#40;res&amp;#41; {
+	return manipulateMeInSomeWay&amp;#40;res&amp;#41;;
+}&amp;#41;;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+<pubDate>
+Wed, 12 Feb 2014 00:00:00 +0000
+</pubDate>
+</item>
+</channel>
+</rss>

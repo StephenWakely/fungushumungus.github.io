@@ -1,0 +1,19 @@
+{:site-title       "Tao of Code"
+ :author           "Fungus Humungus"
+ :description      "The sound of recursion."
+ :site-url         "http://taoofcode.net/"
+ :tag-root         "tags"
+ :rss-name         "feed.xml"
+ :rss-filters      ["cryogen"]
+ :post-root        "posts"
+ :page-root        "pages"
+ :post-uri         "/:title/"
+ :recent-posts     3
+ :post-date-format "yyyy-MM-dd"
+ :sass-src         nil
+ :sass-dest        nil
+ :resources        ["css" "js" "img" "404.html"]
+ :keep-files       [".git"]
+ :disqus?          true
+ :disqus-shortname "taoofcode"
+ :ignored-files    [#"\.#.*" #".*\.swp$"]}

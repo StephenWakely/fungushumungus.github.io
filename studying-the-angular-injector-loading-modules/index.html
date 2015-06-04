@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Tao of Code: Studying the Angular JS Injector - loading modules</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700' rel='stylesheet'
+          type='text/css'>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/androidstudio.css">
+    <link href="../css/screen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/index.html">Tao of Code</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li ><a href="/index.html">Home</a></li>
+                
+                <li><a href="/feed.xml">RSS</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div><!--/.container-fluid -->
+</nav>
+
+
+<div class="container">
+
+
+    <div class="row">
+        <div class="col-lg-9">
+            <div id="content">
+                
+<div id="post">
+    <div id="post-header">
+    <div id="post-meta" class="row">
+        <div class="col-lg-6">March 10, 2014</div>
+        
+    </div>
+    <h2>Studying the Angular JS Injector - loading modules</h2>
+</div>
+<div>
+    
+    <p>(This post is part of a series <a href='http://taoofcode.net/studying-the-angular-injector/'>studying the AngularJS injector</a>)</p><p>A module gets loaded with the following code:</p><pre><code class="language-javascript"> function loadModules&#40;modulesToLoad&#41;{
+    var runBlocks = &#91;&#93;, moduleFn, invokeQueue, i, ii;
+    forEach&#40;modulesToLoad, function&#40;module&#41; {
+      if &#40;loadedModules.get&#40;module&#41;&#41; return;
+      loadedModules.put&#40;module, true&#41;;
+
+      try {
+        if &#40;isString&#40;module&#41;&#41; {
+          moduleFn = angularModule&#40;module&#41;;
+          runBlocks = runBlocks.concat&#40;loadModules&#40;moduleFn.requires&#41;&#41;.concat&#40;moduleFn.&#95;runBlocks&#41;;
+
+          for&#40;invokeQueue = moduleFn.&#95;invokeQueue, i = 0, ii = invokeQueue.length; i &lt; ii; i++&#41; {
+            var invokeArgs = invokeQueue&#91;i&#93;,
+                provider = providerInjector.get&#40;invokeArgs&#91;0&#93;&#41;;
+
+            provider&#91;invokeArgs&#91;1&#93;&#93;.apply&#40;provider, invokeArgs&#91;2&#93;&#41;;
+          }
+        } else if &#40;isFunction&#40;module&#41;&#41; {
+            runBlocks.push&#40;providerInjector.invoke&#40;module&#41;&#41;;
+        } else if &#40;isArray&#40;module&#41;&#41; {
+            runBlocks.push&#40;providerInjector.invoke&#40;module&#41;&#41;;
+        } else {
+          assertArgFn&#40;module, 'module'&#41;;
+        }
+      } catch &#40;e&#41; {
+        if &#40;isArray&#40;module&#41;&#41; {
+          module = module&#91;module.length - 1&#93;;
+        }
+        if &#40;e.message &amp;&amp; e.stack &amp;&amp; e.stack.indexOf&#40;e.message&#41; == -1&#41; {
+          // Safari &amp; FF's stack traces don't contain error.message content
+          // unlike those of Chrome and IE
+          // So if stack doesn't contain message, we create a new string that contains both.
+          // Since error.stack is read-only in Safari, I'm overriding e and not e.stack here.
+          /&#42; jshint -W022 &#42;/
+          e = e.message + '\n' + e.stack;
+        }
+        throw $injectorMinErr&#40;'modulerr', &quot;Failed to instantiate module {0} due to:\n{1}&quot;,
+                  module, e.stack || e.message || e&#41;;
+      }
+    }&#41;;
+    return runBlocks;
+  }
+</code></pre><p>The function returns an array of runBlocks - functions which are to be invoked after loading.</p><p>There are three ways to define a module in AngularJS. The first is by specifying a runBlock directly :</p><pre><code class="language-javascript">angular.module&#40;function&#40;$httpProvider&#41; {
+	console.log&#40;'Module is now running'&#41;;
+}&#41;;
+</code></pre><p>Or by passing an array :</p><pre><code class="language-javascript">angular.module&#40;&#91;'$httpProvider', function&#40;$httpProvider&#41; {
+	...
+}&#93;&#41;;
+</code></pre><p>In both these cases the module is run with this line:</p><pre><code class="language-javascript">	runBlocks.push&#40;providerInjector.invoke&#40;module&#41;&#41;;
+</code></pre><p>The module function is invoked against the providerInjector. This means that we can inject the elusive <code>$provide</code> object into this function. This can then be used to register services directly.</p><pre><code class="language-javascript">var injector = angular.injector&#40;&#91;function&#40;$provide&#41; {
+	$provide.value&#40;'anInterestingFact', 'An ant has two stomachs. One for its own food and another for food to share'&#41;;
+}&#93;&#41;;
+
+injector.get&#40;'anInterestingFact'&#41;;
+// 'An ant has two stomachs. One for its own food and another for food to share'
+</code></pre><p>Most likely the module will be defined with a string that identifies the name of the module. A module in Angular is typically setup as follows :</p><pre><code class="language-javascript">angular.module&#40;'myModule', &#91;dependency&#93;&#41;;
+</code></pre>If the module has been defined in this way, the following code is run:<pre><code class="language-javascript">moduleFn = angularModule&#40;module&#41;;
+runBlocks = runBlocks.concat&#40;loadModules&#40;moduleFn.requires&#41;&#41;.concat&#40;moduleFn.&#95;runBlocks&#41;;
+
+for&#40;invokeQueue = moduleFn.&#95;invokeQueue, i = 0, ii = invokeQueue.length; i &lt; ii; i++&#41; {
+	var invokeArgs = invokeQueue&#91;i&#93;,
+    	provider = providerInjector.get&#40;invokeArgs&#91;0&#93;&#41;;
+
+	provider&#91;invokeArgs&#91;1&#93;&#93;.apply&#40;provider, invokeArgs&#91;2&#93;&#41;;
+}
+</code></pre><p>First we retrieve the module object using the angularModule function. This function is defined outside of the injector and is just an alias for the angular.module function. When the module is setup two arrays are populated : <code>&#95;runBlocks</code> and <code>&#95;invokeQueue</code>. (The code that sets this module up is not within the injector module, so I won't be looking at this for the moment.)</p><h3><a name="<i>runblocks"></a></i>runBlocks</h3><p>This gets populated with functions specified in the <code>angular.module&#40;'myModule'&#41;.run</code> block. This code needs to be invoked as soon as the module is loaded. So we concat this array to our runBlocks return.</p><h3><a name="<i>invokequeue"></a></i>invokeQueue</h3><p>The _invokeQueue is populated with each service that is added to the module using the familiar <code>angular.module&#40;'myModule'&#41;.controller</code>, <code>angular.module&#40;'myModule'&#41;.directive</code> et al. calls. Each item in the queue is an array with three elements. The first is the provider that will invoke the service, the second is the method on the provider to use and the third element is an array of any arguments passed to the service.</p><p>Lets look at an example to see how it all fits together. Say we setup our module as follows:</p><pre><code class="language-javascript">angular.module&#40;'aNiceModule', &#91;&#93;&#41;
+		.run&#40;function&#40;&#41; {
+			console.log&#40;'running...'&#41;;
+		}&#41;
+		.controller&#40;'aNiceController', function&#40;$scope&#41; {
+			console.log&#40;'setting up controller'&#41;;
+		}&#41;;
+</code></pre><p>We can call <code>angular.bootstrap&#40;window.document.body, &#91;'aNiceModule'&#93;&#41;;</code> to kick off the module loading. The <code>aNiceModule</code> module will have one entry in _runBlocks:</p><pre><code class="language-javascript">function&#40;&#41; {
+	console.log&#40;'running...'&#41;;
+}
+</code></pre><p>and one entry in <code>&#95;invokeQueue</code>:</p><pre><code class="language-javascript">&#91;'$controllerProvider', 'register', &#91;'aNiceModule', function&#40;$scope&#41; {...}&#93;&#93;
+</code></pre><p>The <code>$controllerProvider</code> is the built-in Angular provider that enables registering controllers. Calling register will add this service to the list of available controllers. Note that nothing gets added to the injectors cache. This means controllers cannot be injected into a service. If you really needed to get access to a controller (you do when unit testing) you would inject the <code>$controller</code> provider and retreive the controller by calling <code>get&#40;controllerName&#41;</code>.</p><p>Lets try creating a factory service:</p><pre><code class="language-javascript">angular.module&#40;'aNiceModule', &#91;&#93;&#41;
+		.factory&#40;'aNiceFactory', function&#40;&#41; {
+			console.log&#40;'setting up factory'&#41;;
+			return {};
+		}&#41;;
+</code></pre><p>When we load this module, <code>&#95;invokeQueue</code> will have the following entry:</p><pre><code class="language-javascript">&#91;'$provide', 'factory', &#91;'aNiceModule', function&#40;&#41; {...}&#93;&#93;
+</code></pre><p>The service gets registered using the built in <code>$provideProvider</code>. The service is then available to the injector to inject into any other service that needs it.</p><p>That pretty much sums up the injector. The rest of Angular JS is built around this core module and it has proved immensely insightful to learn it inside out.</p><p>If you are interested in using it on the server in your nodeJS app, I have pulled out the injector code into <a href='https://github.com/FungusHumungus/pongular'>it's own module</a>.</p>
+</div>
+
+<div id="post-tags">
+    <b>Tags: </b>
+    
+    <a href="/tags/angularjs.html">angularjs</a>
+    
+    <a href="/tags/javascript.html">javascript</a>
+    
+</div>
+
+
+    <div id="prev-next">
+        
+        <a href="/javascript-schonfinkeling/">&laquo; Javascript Schönfinkeling</a>
+        
+        
+        <a class="right" href="/studying-the-angular-injector-the-twin-injectors/">Studying the Angular JS Injector - the twin injectors &raquo;</a>
+        
+    </div>
+
+    
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//taoofcode.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    
+
+
+</div>
+
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div id="sidebar">
+                
+                <div id="tags">
+                    <h3>Tags</h3>
+                    <ul>
+                        
+                        <li><a href="/tags/angularjs.html">angularjs</a></li>
+                        
+                        <li><a href="/tags/javascript.html">javascript</a></li>
+                        
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p style="text-align: center;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script src="../js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>
+
