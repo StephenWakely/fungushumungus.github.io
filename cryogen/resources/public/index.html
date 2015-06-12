@@ -46,80 +46,76 @@
 <div id="post">
     <div id="post-header">
     <div id="post-meta" class="row">
-        <div class="col-lg-6">July 4, 2014</div>
+        <div class="col-lg-6">June 12, 2015</div>
         
     </div>
-    <h2>Creating a plugin system in Angular JS with the $compile service</h2>
+    <h2>Cond and friends</h2>
 </div>
 <div>
     
-    <p>Angular JS directives are powerful. Using them allows you to manipulate pretty much everything in the DOM that you would want to. But there is one exception. Dynamically creating a directive depending on data received from the server, something often used for plugin systems. Luckily we can access the $compileProvider directly to work around these limitations.</p><h2><a name="plugins"></a>Plugins</h2>Say you are designing a plugin system. Each plugin is implemented as a different directive. The plugin to use is stored in the database and sent down from the server.<p>Lets set up a couple of very simple directives:</p><pre><code class="language-javascript">angular.module&#40;'anApp'&#41;.directive&#40;'one', function&#40;&#41; {
-    return {
-        template: '&lt;span&gt;I am one&lt;/span&gt;'   
-    };
-}&#41;;
+     <p>There are a number of different cond's in Clojure.</p><h2><a name="cond"></a>cond</h2><p>The classic cond. This replaces the standard <code>if...else if....else</code> that you find in other languages. It takes a set of test and expression pairs. For the first test that evaluates to <code>true</code> it will evaluate and return its corresponing expression.</p><pre><code>&#40;cond &#40;is-banana? me&#41; &quot;I am a banana&quot;
+      &#40;is-slug? me&#41; &quot;I am a slug&quot;
+      :else &quot;I am a turnip&quot;&#41;
 
-angular.module&#40;'anApp'&#41;.directive&#40;'two', function&#40;&#41; {
-    return {
-        template: '&lt;span&gt;I am two&lt;/span&gt;'   
-    };
-}&#41;;
-</code></pre><p>Our controller grabs the plugin to use from a factory and attaches it to the scope. This factory has presumably queried the server to get the name of the plugin we need :</p><pre><code class="language-javascript">angular.module&#40;'anApp'&#41;.controller&#40;'aCtrl', function&#40;$scope, aFactory&#41; {
-    aFactory&#40;&#41;.then&#40;function&#40;plugin&#41; {
-       $scope.plugin = plugin; // Either 'one' or 'two'.
-    }&#41;;
-}&#41;
-</code></pre><p>Now we have a problem. How are we going to render the required directive?</p><h3><a name="naive&#95;approaches"></a>Naive approaches</h3><p>A naive approach might be something like :</p><pre><code class="language-javascript">&lt;div ng-app='anApp'&gt;
-    &lt;div ng-controller='aCtrl'&gt;
-        &lt;div {{plugin}}&gt;&lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-</code></pre><p>That doesn't work. The <code>{{plugin}}</code> does not get interpolated in time and so the directive is not rendered.</p><p>Another approach that could almost work is specifying a directive that uses a function to specify the template.</p><pre><code class="language-javascript">.directive&#40;'taoPlugin', function&#40;&#41; {
-    return {
-        template: function&#40;element, attrs&#41; { 
-            var p = attrs.plugin;
-            return '&lt;' + p + ' /&gt;'; 
-        }  
-    }   
-}&#41;;
-</code></pre><p>This could almost work. The problem is the attrs doesn't contain the correct plugin name. We want to pull the plugin name out of our parents controllers scope. There is no way of pulling the actual data out of the scope into the attrs collection. (Feel free to correct me if I am wrong - it would be great if there was!) </p><p>So we just end up with the following output rendered to page :</p><pre><code class="language-javascript">&lt;one /&gt;
-<h2></code></pre></h2><h3><a name="$compile&#95;to&#95;the&#95;rescue."></a>$compile to the rescue.</h3><p>$compile is the provider that takes an HTML template string and creates a template function. When this template function is called with a <code>$scope</code> it spits out HTML. It is the provider at the core of Angular which enables directives to manipulate the DOM using the Angular templating language.</p><p>It takes template HTML : </p><pre><code class="language-javascript">&lt;div&gt;{{something}}&lt;/div&gt;
-</code></pre><p>and returns a function, which we call with a scope :</p><pre><code class="language-javascript">$scope.something = 'Interesting text'
-</code></pre><p>and compiles it to : </p><pre><code class="language-javascript">&lt;div&gt;Interesting text&lt;/div&gt;
-</code></pre>(Note the text is not acually interpolated until it is rendered to the DOM.)<p>So, if we pass <code>$compile</code> the string : <code>'&lt;one /&gt;'</code> it is actually going to compile our <code>one</code> directive. Naturally because we are just passing a string, we will have no problems building this string up at run time to whatever we require.</p><p>Then all we need to do is append this html to a given element for it to be rendered on the page. To access an element on the page we need to create a directive. So lets create this directive.</p><pre><code class="language-javascript">angular.module&#40;'anApp'&#41;.directive&#40;'taoPlugin', &#91;'$compile', function&#40;$compile&#41; {
-    return {
-        restrict: 'E',
-        scope: { 'plugin': '=' },
-        link: function&#40;scope, element&#41; {
-            var template = '&lt;' + scope.plugin + ' /&gt;',
-                compiled = $compile&#40;template&#41;&#40;scope&#41;;
+=&gt; &quot;I am a slug&quot;      
+</code></pre><h2><a name="cond->"></a>cond-></h2><p>Now cond short circuits - it will stop at the first true expression. You may think "aaarg.. but more than one of my expressions may be true, I want all my true expressions to evaluate". In this case you probably want to use <code>cond-&gt;</code>. <code>cond-&gt;</code> takes an initial form  and then a set of test and expression pairs. It will then thread that initial form through each expression where the test evaluates to true.</p><pre><code>&#40;cond-&gt; &quot;I am a &quot; &#40;is-slimey? me&#41; &#40;str &quot;slimey &quot;&#41;
+                  &#40;is-banana? me&#41; &#40;str &quot;banana&quot;&#41;
+                  &#40;is-slug? me&#41; &#40;str &quot;slug&quot;&#41;&#41;
 
-			element.append&#40;compiled&#41;;            
-        }   
-    }   
-}&#93;&#41;;
-</code></pre><p>We can then setup our directive simply :</p><pre><code class="language-javascript">&lt;tao-plugin plugin='plugin'&gt;&lt;/tao-plugin&gt;
-</code></pre><p>The directive we have set in our controller  : <code>$scope.plugin = plugin;</code> is the directive that is rendered.</p><p>Here is a <a href='http://jsfiddle.net/ht8ZQ/26/'>jsFiddle</a> that demonstrates this.</p><p>Note our directive here isn't passing on any parameters to the plugin directive. This could be achieved by looping round the attr array that gets passed into the link function.</p><p>Also note that the directive has isolate scope. This gets passed on to the plugin directives. If you want a different scope for your plugins, you would need to change the scope of this plugin as well.</p>
+=&gt; &quot;I am a slimey slug&quot;                  
+</code></pre><h2><a name="cond->>"></a>cond->></h2><p><code>cond-&gt;&gt;</code> is pretty much the same as <code>cond-&gt;</code> except <code>cond-&gt;</code> threads first (puts the threaded param first in the argument list) and <code>cond-&gt;&gt;</code> threads last (puns the threaded param last in the argument list).</p><pre><code>&#40;cond-&gt;&gt; &quot;I am a &quot; &#40;is-slimey? me&#41; &#40;str &quot;slimey &quot;&#41;
+                   &#40;is-banana? me&#41; &#40;str &quot;banana&quot;&#41;
+                   &#40;is-slug? me&#41; &#40;str &quot;slug&quot;&#41;&#41;
+
+=&gt; &quot;slug slimey I am a&quot;                  
+</code></pre><h2><a name="when"></a>when</h2>You might be thinking, "I don't want to thread an argument through all the true expressions - I just want to evaluate them". The only reason you would want to do this would be if those exressions had side effects and you wanted to ignore their results.<p>If you really want to ignore the results just use <code>when</code> :</p><pre><code>&#40;when &#40;is-slimey? me&#41; &#40;send-slime&#41;&#41;
+&#40;when &#40;is-banana? me&#41; &#40;send-banana&#41;&#41;
+&#40;when &#40;is-slug? me&#41; &#40;send-slug&#41;&#41;
+</code></pre><h2><a name="case"></a>case</h2>If you find you are writing this:<pre><code>&#40;cond &#40;= me &quot;banana&quot;&#41; &quot;I am a banana&quot;
+      &#40;= me &quot;slug&quot;&#41; &quot;I am a slug&quot;
+      :else &quot;I am a turnip&quot;&#41;
+</code></pre><p>You should probably be using <code>case</code> instead. <code>case</code> takes an expression and thes a set of constant and expression pairs. For the first constant that is equal to the result of our expression the result of the corresponding expression is returned. There can be a single default expression at the end of our clauses that is evaluated and returned if none of the given constants are equal.</p><pre><code>&#40;case me
+      &quot;banana&quot; &quot;I am a banana&quot;
+      &quot;slug&quot; &quot;I am a slug&quot;
+      &quot;I am a turnip&#41;
+</code></pre><p>If none of the clauses match and there is no default you will get an IllegalArgumentException.</p><h2><a name="condp"></a>condp</h2><p><code>case</code> is good and all, but that only uses = to determine a match. What if we wanted to use some other predicate instead - say a regex match - we could fall back to cond.</p><pre><code>&#40;cond &#40;re-seq #&quot;handsome&quot; &#40;looks me&#41;&#41; &quot;Yes I am&quot;
+      &#40;re-seq #&quot;funky&quot; &#40;looks me&#41;&#41; &quot;I'm ugly but at least I'm funky&quot;
+      :else &quot;Oh dear&quot;&#41;
+
+=&gt; &quot;I'm ugly but at least I'm funky&quot;      
+</code></pre><p>However, here it would be neater to use <code>condp</code>. <code>condp</code> takes a predicate, a parameter (which is passed as the second parameter to the predicate) and a set of test expressions to result expressions. Then it runs through the clauses and passes each result of the test expression as the first parameter to the predicate. An example might make it clearer. The above can be rewritten as :</p><pre><code>&#40;condp re-seq &#40;looks me&#41;
+       #&quot;handsome&quot; &quot;Yes I am&quot;
+       #&quot;funky&quot; &quot;I'm ugly but at least I'm funky&quot;
+       &quot;Oh dear&quot;&#41;
+
+=&gt; &quot;I'm ugly but at least I'm funky&quot;
+</code></pre><p><code>condp</code> is even better than that. If we separate our test clause and result clause with a <code>:&gt;&gt;</code> then the result of running the predicate with the test clause gets passed to the result clause - which must now be a function.</p><pre><code>&#40;condp re-find &#40;looks me&#41;
+       #&quot;.&#42;handsome.&#42;&quot; :&gt;&gt; #&#40;str &quot;Yes I am&quot; %&#41;
+       #&quot;.&#42;funky.&#42;&quot; :&gt;&gt; #&#40;str &quot;I'm ugly but at least I'm &quot; %&#41;
+       &quot;Oh dear&quot;&#41;
+
+=&gt; &quot;I'm ugly but at least I'm Big and funky&quot;
+</code></pre><p>Enjoy!</p>
 </div>
 
 <div id="post-tags">
     <b>Tags: </b>
     
-    <a href="/tags/javascript.html">javascript</a>
+    <a href="/tags/clojure.html">clojure</a>
     
 </div>
 
 
     
     <div id="comments">
-        <a href="/creating-a-plugin-system-with-the-compile-provider/#disqus_thread">View Comments</a>
+        <a href="/cond-and-friends/#disqus_thread">View Comments</a>
     </div>
     
 
     <div id="prev-next">
         
         
-        <a class="right" href="/cond-and-friends/">Cond and friends &raquo;</a>
+        <a class="right" href="/creating-a-plugin-system-with-the-compile-provider/">Creating a plugin system in Angular JS with the $compile service &raquo;</a>
         
     </div>
 </div>
@@ -136,9 +132,9 @@ angular.module&#40;'anApp'&#41;.directive&#40;'two', function&#40;&#41; {
                         
                         <li><a href="/tags/angularjs.html">angularjs</a></li>
                         
-                        <li><a href="/tags/clojure.html">clojure</a></li>
-                        
                         <li><a href="/tags/javascript.html">javascript</a></li>
+                        
+                        <li><a href="/tags/clojure.html">clojure</a></li>
                         
                     </ul>
                 </div>

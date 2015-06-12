@@ -15,8 +15,67 @@ http://taoofcode.net/
 The sound of recursion.
 </description>
 <lastBuildDate>
-Thu, 04 Jun 2015 15:56:09 +0100
+Fri, 12 Jun 2015 22:10:43 +0100
 </lastBuildDate>
+<item>
+<guid>
+http://taoofcode.net/cond-and-friends/
+</guid>
+<link>
+http://taoofcode.net/cond-and-friends/
+</link>
+<title>
+Cond and friends
+</title>
+<description>
+ &lt;p&gt;There are a number of different cond's in Clojure.&lt;/p&gt;&lt;h2&gt;&lt;a name=&quot;cond&quot;&gt;&lt;/a&gt;cond&lt;/h2&gt;&lt;p&gt;The classic cond. This replaces the standard &lt;code&gt;if...else if....else&lt;/code&gt; that you find in other languages. It takes a set of test and expression pairs. For the first test that evaluates to &lt;code&gt;true&lt;/code&gt; it will evaluate and return its corresponing expression.&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;cond &amp;#40;is-banana? me&amp;#41; &amp;quot;I am a banana&amp;quot;
+      &amp;#40;is-slug? me&amp;#41; &amp;quot;I am a slug&amp;quot;
+      :else &amp;quot;I am a turnip&amp;quot;&amp;#41;
+
+=&amp;gt; &amp;quot;I am a slug&amp;quot;      
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;&lt;a name=&quot;cond-&gt;&quot;&gt;&lt;/a&gt;cond-&gt;&lt;/h2&gt;&lt;p&gt;Now cond short circuits - it will stop at the first true expression. You may think &quot;aaarg.. but more than one of my expressions may be true, I want all my true expressions to evaluate&quot;. In this case you probably want to use &lt;code&gt;cond-&amp;gt;&lt;/code&gt;. &lt;code&gt;cond-&amp;gt;&lt;/code&gt; takes an initial form  and then a set of test and expression pairs. It will then thread that initial form through each expression where the test evaluates to true.&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;cond-&amp;gt; &amp;quot;I am a &amp;quot; &amp;#40;is-slimey? me&amp;#41; &amp;#40;str &amp;quot;slimey &amp;quot;&amp;#41;
+                  &amp;#40;is-banana? me&amp;#41; &amp;#40;str &amp;quot;banana&amp;quot;&amp;#41;
+                  &amp;#40;is-slug? me&amp;#41; &amp;#40;str &amp;quot;slug&amp;quot;&amp;#41;&amp;#41;
+
+=&amp;gt; &amp;quot;I am a slimey slug&amp;quot;                  
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;&lt;a name=&quot;cond-&gt;&gt;&quot;&gt;&lt;/a&gt;cond-&gt;&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;cond-&amp;gt;&amp;gt;&lt;/code&gt; is pretty much the same as &lt;code&gt;cond-&amp;gt;&lt;/code&gt; except &lt;code&gt;cond-&amp;gt;&lt;/code&gt; threads first (puts the threaded param first in the argument list) and &lt;code&gt;cond-&amp;gt;&amp;gt;&lt;/code&gt; threads last (puns the threaded param last in the argument list).&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;cond-&amp;gt;&amp;gt; &amp;quot;I am a &amp;quot; &amp;#40;is-slimey? me&amp;#41; &amp;#40;str &amp;quot;slimey &amp;quot;&amp;#41;
+                   &amp;#40;is-banana? me&amp;#41; &amp;#40;str &amp;quot;banana&amp;quot;&amp;#41;
+                   &amp;#40;is-slug? me&amp;#41; &amp;#40;str &amp;quot;slug&amp;quot;&amp;#41;&amp;#41;
+
+=&amp;gt; &amp;quot;slug slimey I am a&amp;quot;                  
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;&lt;a name=&quot;when&quot;&gt;&lt;/a&gt;when&lt;/h2&gt;You might be thinking, &quot;I don't want to thread an argument through all the true expressions - I just want to evaluate them&quot;. The only reason you would want to do this would be if those exressions had side effects and you wanted to ignore their results.&lt;p&gt;If you really want to ignore the results just use &lt;code&gt;when&lt;/code&gt; :&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;when &amp;#40;is-slimey? me&amp;#41; &amp;#40;send-slime&amp;#41;&amp;#41;
+&amp;#40;when &amp;#40;is-banana? me&amp;#41; &amp;#40;send-banana&amp;#41;&amp;#41;
+&amp;#40;when &amp;#40;is-slug? me&amp;#41; &amp;#40;send-slug&amp;#41;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;&lt;a name=&quot;case&quot;&gt;&lt;/a&gt;case&lt;/h2&gt;If you find you are writing this:&lt;pre&gt;&lt;code&gt;&amp;#40;cond &amp;#40;= me &amp;quot;banana&amp;quot;&amp;#41; &amp;quot;I am a banana&amp;quot;
+      &amp;#40;= me &amp;quot;slug&amp;quot;&amp;#41; &amp;quot;I am a slug&amp;quot;
+      :else &amp;quot;I am a turnip&amp;quot;&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You should probably be using &lt;code&gt;case&lt;/code&gt; instead. &lt;code&gt;case&lt;/code&gt; takes an expression and thes a set of constant and expression pairs. For the first constant that is equal to the result of our expression the result of the corresponding expression is returned. There can be a single default expression at the end of our clauses that is evaluated and returned if none of the given constants are equal.&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;case me
+      &amp;quot;banana&amp;quot; &amp;quot;I am a banana&amp;quot;
+      &amp;quot;slug&amp;quot; &amp;quot;I am a slug&amp;quot;
+      &amp;quot;I am a turnip&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If none of the clauses match and there is no default you will get an IllegalArgumentException.&lt;/p&gt;&lt;h2&gt;&lt;a name=&quot;condp&quot;&gt;&lt;/a&gt;condp&lt;/h2&gt;&lt;p&gt;&lt;code&gt;case&lt;/code&gt; is good and all, but that only uses = to determine a match. What if we wanted to use some other predicate instead - say a regex match - we could fall back to cond.&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;cond &amp;#40;re-seq #&amp;quot;handsome&amp;quot; &amp;#40;looks me&amp;#41;&amp;#41; &amp;quot;Yes I am&amp;quot;
+      &amp;#40;re-seq #&amp;quot;funky&amp;quot; &amp;#40;looks me&amp;#41;&amp;#41; &amp;quot;I'm ugly but at least I'm funky&amp;quot;
+      :else &amp;quot;Oh dear&amp;quot;&amp;#41;
+
+=&amp;gt; &amp;quot;I'm ugly but at least I'm funky&amp;quot;      
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;However, here it would be neater to use &lt;code&gt;condp&lt;/code&gt;. &lt;code&gt;condp&lt;/code&gt; takes a predicate, a parameter (which is passed as the second parameter to the predicate) and a set of test expressions to result expressions. Then it runs through the clauses and passes each result of the test expression as the first parameter to the predicate. An example might make it clearer. The above can be rewritten as :&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;condp re-seq &amp;#40;looks me&amp;#41;
+       #&amp;quot;handsome&amp;quot; &amp;quot;Yes I am&amp;quot;
+       #&amp;quot;funky&amp;quot; &amp;quot;I'm ugly but at least I'm funky&amp;quot;
+       &amp;quot;Oh dear&amp;quot;&amp;#41;
+
+=&amp;gt; &amp;quot;I'm ugly but at least I'm funky&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;condp&lt;/code&gt; is even better than that. If we separate our test clause and result clause with a &lt;code&gt;:&amp;gt;&amp;gt;&lt;/code&gt; then the result of running the predicate with the test clause gets passed to the result clause - which must now be a function.&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;condp re-find &amp;#40;looks me&amp;#41;
+       #&amp;quot;.&amp;#42;handsome.&amp;#42;&amp;quot; :&amp;gt;&amp;gt; #&amp;#40;str &amp;quot;Yes I am&amp;quot; %&amp;#41;
+       #&amp;quot;.&amp;#42;funky.&amp;#42;&amp;quot; :&amp;gt;&amp;gt; #&amp;#40;str &amp;quot;I'm ugly but at least I'm &amp;quot; %&amp;#41;
+       &amp;quot;Oh dear&amp;quot;&amp;#41;
+
+=&amp;gt; &amp;quot;I'm ugly but at least I'm Big and funky&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Enjoy!&lt;/p&gt;
+</description>
+<pubDate>
+Fri, 12 Jun 2015 00:00:00 +0100
+</pubDate>
+</item>
 <item>
 <guid>
 http://taoofcode.net/creating-a-plugin-system-with-the-compile-provider/

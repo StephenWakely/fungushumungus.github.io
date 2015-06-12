@@ -1,10 +1,10 @@
 {:title "Cond and friends"
  :layout :post
  :tags  ["clojure"]}
-
+ 
 There are a number of different cond's in Clojure.
 
-###cond
+##cond
 
 The classic cond. This replaces the standard `if...else if....else` that you find in other languages. It takes a set of test and expression pairs. For the first test that evaluates to `true` it will evaluate and return its corresponing expression.
 
@@ -16,9 +16,9 @@ The classic cond. This replaces the standard `if...else if....else` that you fin
 => "I am a slug"      
 ```
 
-###cond->
+##cond->
 
-Now cond short circuits - it will stop at the first true expression. You may think "aaarg.. but more than one of my expressions may be true, I want all my true expressions to evaluate". In this case you probably want to use cond->. cond-> takes an initial form  and then a set of test and expression pairs. It will then thread that initial form through each expression where the test evaluates to true.
+Now cond short circuits - it will stop at the first true expression. You may think "aaarg.. but more than one of my expressions may be true, I want all my true expressions to evaluate". In this case you probably want to use `cond->`. `cond->` takes an initial form  and then a set of test and expression pairs. It will then thread that initial form through each expression where the test evaluates to true.
 
 ```
 (cond-> "I am a " (is-slimey? me) (str "slimey ")
@@ -28,20 +28,20 @@ Now cond short circuits - it will stop at the first true expression. You may thi
 => "I am a slimey slug"                  
 ```
 
-###cond->>
+##cond->>
 
-cond->> is pretty much the same as cond-> except cond-> threads first (puts the threaded param first in the argument list) and cond->> threads last (puns the threaded param last in the argument list).
+`cond->>` is pretty much the same as `cond->` except `cond->` threads first (puts the threaded param first in the argument list) and `cond->>` threads last (puns the threaded param last in the argument list).
 
 
 ```
 (cond->> "I am a " (is-slimey? me) (str "slimey ")
-                  (is-banana? me) (str "banana")
-                  (is-slug? me) (str "slug"))
+                   (is-banana? me) (str "banana")
+                   (is-slug? me) (str "slug"))
 
 => "slug slimey I am a"                  
 ```
 
-###when
+##when
 You might be thinking, "I don't want to thread an argument through all the true expressions - I just want to evaluate them". The only reason you would want to do this would be if those exressions had side effects and you wanted to ignore their results.
 
 If you really want to ignore the results just use `when` :
@@ -52,7 +52,7 @@ If you really want to ignore the results just use `when` :
 (when (is-slug? me) (send-slug))
 ```
 
-###case
+##case
 If you find you are writing this:
 
 ```
@@ -72,7 +72,7 @@ You should probably be using `case` instead. `case` takes an expression and thes
 
 If none of the clauses match and there is no default you will get an IllegalArgumentException.
 
-###condp
+##condp
 
 `case` is good and all, but that only uses = to determine a match. What if we wanted to use some other predicate instead - say a regex match - we could fall back to cond.
 
@@ -106,3 +106,4 @@ However, here it would be neater to use `condp`. `condp` takes a predicate, a pa
 => "I'm ugly but at least I'm Big and funky"
 ```
 
+Enjoy!
