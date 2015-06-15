@@ -15,7 +15,7 @@ http://taoofcode.net/
 The sound of recursion.
 </description>
 <lastBuildDate>
-Fri, 12 Jun 2015 22:10:43 +0100
+Mon, 15 Jun 2015 22:55:32 +0100
 </lastBuildDate>
 <item>
 <guid>
@@ -70,7 +70,22 @@ Cond and friends
        &amp;quot;Oh dear&amp;quot;&amp;#41;
 
 =&amp;gt; &amp;quot;I'm ugly but at least I'm Big and funky&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Enjoy!&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;&lt;a name=&quot;and&amp;#95;&amp;&amp;#95;or&quot;&gt;&lt;/a&gt;and &amp; or&lt;/h2&gt;&lt;p&gt;&lt;code&gt;cond&lt;/code&gt; can be implemented just using the &lt;code&gt;and&lt;/code&gt; and &lt;code&gt;or&lt;/code&gt; boolean operators.&lt;/p&gt;&lt;p&gt;&lt;code&gt;or&lt;/code&gt; will short-circuit (stop processing) at the first true expression (everything apart from false and nil) and will return the result of evaluating it :&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;or &amp;#40;= 3 2&amp;#41; &amp;#40;= 4 3&amp;#41; &amp;quot;fish&amp;quot; &amp;#40;println &amp;quot;ooops&amp;quot;&amp;#41;&amp;#41;
+
+=&amp;gt; &amp;quot;fish&amp;quot; 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;and&lt;/code&gt; will short-circuit at the first false expression. If there is a false value it returns false, otherwise it will return the result of the final expression :&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;and true 4 :a &amp;quot;fish&amp;quot;&amp;#41;
+
+=&amp;gt; fish
+
+&amp;#40;and true &amp;#40;= 3 &amp;quot;fish&amp;quot;&amp;#41; &amp;#40;println &amp;quot;ooops&amp;quot;&amp;#41;&amp;#41;
+
+=&amp;gt; false
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We can put these two together to emulate our initial &lt;code&gt;cond&lt;/code&gt; :&lt;/p&gt;&lt;pre&gt;&lt;code&gt;&amp;#40;or &amp;#40;and &amp;#40;is-banana? me&amp;#41; &amp;quot;I am a banana&amp;quot;&amp;#41;
+    &amp;#40;and &amp;#40;is-slug? me&amp;#41; &amp;quot;I am a slug&amp;quot;&amp;#41;
+    &amp;quot;I am a turnip&amp;quot;&amp;#41;
+
+=&amp;gt; &amp;quot;I am a slug&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;With a little imagination you can create all kinds of complex conditional structures just using &lt;code&gt;or&lt;/code&gt; and &lt;code&gt;and&lt;/code&gt;. Whether you should or not is up to you!&lt;/p&gt;&lt;p&gt;Enjoy!&lt;/p&gt;
 </description>
 <pubDate>
 Fri, 12 Jun 2015 00:00:00 +0100

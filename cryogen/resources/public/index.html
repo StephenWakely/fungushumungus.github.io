@@ -95,7 +95,22 @@
        &quot;Oh dear&quot;&#41;
 
 =&gt; &quot;I'm ugly but at least I'm Big and funky&quot;
-</code></pre><p>Enjoy!</p>
+</code></pre><h2><a name="and&#95;&&#95;or"></a>and & or</h2><p><code>cond</code> can be implemented just using the <code>and</code> and <code>or</code> boolean operators.</p><p><code>or</code> will short-circuit (stop processing) at the first true expression (everything apart from false and nil) and will return the result of evaluating it :</p><pre><code>&#40;or &#40;= 3 2&#41; &#40;= 4 3&#41; &quot;fish&quot; &#40;println &quot;ooops&quot;&#41;&#41;
+
+=&gt; &quot;fish&quot; 
+</code></pre><p><code>and</code> will short-circuit at the first false expression. If there is a false value it returns false, otherwise it will return the result of the final expression :</p><pre><code>&#40;and true 4 :a &quot;fish&quot;&#41;
+
+=&gt; fish
+
+&#40;and true &#40;= 3 &quot;fish&quot;&#41; &#40;println &quot;ooops&quot;&#41;&#41;
+
+=&gt; false
+</code></pre><p>We can put these two together to emulate our initial <code>cond</code> :</p><pre><code>&#40;or &#40;and &#40;is-banana? me&#41; &quot;I am a banana&quot;&#41;
+    &#40;and &#40;is-slug? me&#41; &quot;I am a slug&quot;&#41;
+    &quot;I am a turnip&quot;&#41;
+
+=&gt; &quot;I am a slug&quot;
+</code></pre><p>With a little imagination you can create all kinds of complex conditional structures just using <code>or</code> and <code>and</code>. Whether you should or not is up to you!</p><p>Enjoy!</p>
 </div>
 
 <div id="post-tags">

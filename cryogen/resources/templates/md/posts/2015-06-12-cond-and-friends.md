@@ -106,4 +106,41 @@ However, here it would be neater to use `condp`. `condp` takes a predicate, a pa
 => "I'm ugly but at least I'm Big and funky"
 ```
 
+##and & or
+
+`cond` can be implemented just using the `and` and `or` boolean operators.
+
+`or` will short-circuit (stop processing) at the first true expression (everything apart from false and nil) and will return the result of evaluating it :
+
+```
+(or (= 3 2) (= 4 3) "fish" (println "ooops"))
+
+=> "fish" 
+```
+
+`and` will short-circuit at the first false expression. If there is a false value it returns false, otherwise it will return the result of the final expression :
+
+```
+(and true 4 :a "fish")
+
+=> fish
+
+(and true (= 3 "fish") (println "ooops"))
+
+=> false
+```
+
+We can put these two together to emulate our initial `cond` :
+
+```
+(or (and (is-banana? me) "I am a banana")
+    (and (is-slug? me) "I am a slug")
+    "I am a turnip")
+
+=> "I am a slug"
+```
+
+With a little imagination you can create all kinds of complex conditional structures just using `or` and `and`. Whether you should or not is up to you!
+
+
 Enjoy!
