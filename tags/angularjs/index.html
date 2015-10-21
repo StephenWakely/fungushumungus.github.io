@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  	<meta property="og:title" content=" Angularjs &middot;  Tao of Code" />
+  	<meta property="og:site_name" content="Tao of Code" />
+  	<meta property="og:url" content="http://localhost:1313/tags/angularjs/" />
+    
+    
+    <meta property="og:type" content="website" />
+    
+
+  <title>
+     Angularjs &middot;  Tao of Code
+  </title>
+
+    <meta name="description" content="The sound of recursion" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="http://localhost:1313/images/favicon.ico">
+	  <link rel="apple-touch-icon" href="http://localhost:1313/images/apple-touch-icon.png" />
+    
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/nav.css" />
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/solarized_dark.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400|Inconsolata" />
+
+
+    
+      
+          <link href="http://localhost:1313/index.xml" rel="alternate" type="application/rss+xml" title="Tao of Code" />
+      
+      
+        <link href="http://localhost:1313/tags/angularjs/index.xml" rel="alternate" type="application/rss+xml" title="Angularjs &middot; Tao of Code" />
+      
+    
+    <meta name="generator" content="Hugo 0.14" />
+
+    <link rel="canonical" href="http://localhost:1313/tags/angularjs/" />
+
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48094087-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+    
+</head>
+<body class="nav-closed">
+
+  <div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        
+        
+        
+    </ul>
+    
+    
+    <a class="subscribe-button icon-feed" href="http://localhost:1313/tags/angularjs/index.xml">Subscribe</a>
+    
+</div>
+<span class="nav-cover"></span>
+
+
+ <div class="site-wrapper">
+
+
+
+
+	<header class="main-header tag-head" style="background-image: url(http://localhost:1313/img/cover.jpg)">
+
+    <nav class="main-nav overlay clearfix">
+      
+        <a class="blog-logo" href="http://localhost:1313/"><img src="http://localhost:1313/img/logo.gif" alt="Home" /></a>
+      
+      
+        
+          <a class="menu-button icon-feed" href="http://localhost:1313/tags/angularjs/index.xml">&nbsp;&nbsp;Subscribe</a>
+        
+      
+    </nav>
+    <div class="vertical">
+        <div class="main-header-content inner">
+            <h1 class="page-title">Angularjs</h1>
+            <h2 class="page-description">
+                
+            </h2>
+        </div>
+    </div>
+</header>
+
+<main class="content" role="main">
+    
+
+	<div class="extra-pagination inner">
+    <nav class="pagination" role="navigation">
+	
+	<span class="page-number">Page 1 of 1</span>
+	
+</nav>
+
+	</div>
+
+	
+	   
+<article class="post ">
+    <header class="post-header">
+        <h2 class="post-title"><a href="/creating-a-plugin-system-with-the-compile-provider/">Creating a plugin system in Angular JS with the $compile service</a></h2>
+    </header>
+    <section class="post-excerpt">
+        <p>Angular JS directives are powerful. Using them allows you to manipulate pretty much everything in the DOM that you would want to. But there is one exception. Dynamically creating a directive depending on data received from the server, something often used for plugin systems. Luckily we can access the $compileProvider directly to work around these limitations. Plugins Say you are designing a plugin system. Each plugin is implemented as a different directive. <a class="read-more" href="/creating-a-plugin-system-with-the-compile-provider/">&raquo;</a></p>
+    </section>
+    <footer class="post-meta">
+        
+            <img class="author-thumb" src="http://localhost:1313/img/logo.gif" alt="Author image" nopin="nopin" />
+        
+        
+        on
+            
+                <a href="http://localhost:1313/tags/javascript/">#javascript</a>,
+            
+                <a href="http://localhost:1313/tags/angularjs/">#angularjs</a>,
+            
+        
+        <time class="post-date" datetime="2014-07-04T00:00:00Z">
+            4 Jul 2014
+        </time>
+    </footer>
+</article>
+
+	
+	   
+<article class="post ">
+    <header class="post-header">
+        <h2 class="post-title"><a href="/studying-the-angular-injector-loading-modules/">Studying the Angular JS Injector - loading modules</a></h2>
+    </header>
+    <section class="post-excerpt">
+        <p>(This post is part of a series studying the AngularJS injector) A module gets loaded with the following code: function loadModules(modulesToLoad){ var runBlocks = [], moduleFn, invokeQueue, i, ii; forEach(modulesToLoad, function(module) { if (loadedModules.get(module)) return; loadedModules.put(module, true); try { if (isString(module)) { moduleFn = angularModule(module); runBlocks = runBlocks.concat(loadModules(moduleFn.requires)).concat(moduleFn._runBlocks); for(invokeQueue = moduleFn._invokeQueue, i = 0, ii = invokeQueue.length; i &lt; ii; i++) { var invokeArgs = invokeQueue[i], provider = providerInjector.get(invokeArgs[0]); provider[invokeArgs[1]].apply(provider, invokeArgs[2]); } } else if (isFunction(module)) { runBlocks.push(providerInjector.invoke(module)); } else if (isArray(module)) { runBlocks.push(providerInjector.invoke(module)); } else { assertArgFn(module, 'module'); } } catch (e) { if (isArray(module)) { module = module[module.length - 1]; } if (e.message &amp;&amp; e.stack &amp;&amp; e.stack.indexOf(e.message) == -1) { // Safari &amp; FF's stack traces don't contain error.message content // unlike those of Chrome and IE // So if stack doesn't contain message, we create a new string that contains both. <a class="read-more" href="/studying-the-angular-injector-loading-modules/">&raquo;</a></p>
+    </section>
+    <footer class="post-meta">
+        
+            <img class="author-thumb" src="http://localhost:1313/img/logo.gif" alt="Author image" nopin="nopin" />
+        
+        
+        on
+            
+                <a href="http://localhost:1313/tags/javascript/">#javascript</a>,
+            
+                <a href="http://localhost:1313/tags/angularjs/">#angularjs</a>,
+            
+        
+        <time class="post-date" datetime="2014-03-10T00:00:00Z">
+            10 Mar 2014
+        </time>
+    </footer>
+</article>
+
+	
+	   
+<article class="post ">
+    <header class="post-header">
+        <h2 class="post-title"><a href="/studying-the-angular-injector-the-twin-injectors/">Studying the Angular JS Injector - the twin injectors</a></h2>
+    </header>
+    <section class="post-excerpt">
+        <p>(This post is part of a series studying the AngularJS injector) When Angular creates the injector, it actually creates two injectors: providerInjector = (providerCache.$injector = createInternalInjector(providerCache, function() { throw $injectorMinErr('unpr', &quot;Unknown provider: {0}&quot;, path.join(' &lt;- ')); })), instanceInjector = (instanceCache.$injector = createInternalInjector(instanceCache, function(servicename) { var provider = providerInjector.get(servicename + providerSuffix); return instanceInjector.invoke(provider.$get, provider); })); Two parameters are passed to the createInternalInjector function. The first is the cache to use to look up instances (a simple object). <a class="read-more" href="/studying-the-angular-injector-the-twin-injectors/">&raquo;</a></p>
+    </section>
+    <footer class="post-meta">
+        
+            <img class="author-thumb" src="http://localhost:1313/img/logo.gif" alt="Author image" nopin="nopin" />
+        
+        
+        on
+            
+                <a href="http://localhost:1313/tags/javascript/">#javascript</a>,
+            
+                <a href="http://localhost:1313/tags/angularjs/">#angularjs</a>,
+            
+        
+        <time class="post-date" datetime="2014-02-26T00:00:00Z">
+            26 Feb 2014
+        </time>
+    </footer>
+</article>
+
+	
+	   
+<article class="post ">
+    <header class="post-header">
+        <h2 class="post-title"><a href="/studying-the-angular-injector-getservice/">Studying the Angular JS Injector - getService</a></h2>
+    </header>
+    <section class="post-excerpt">
+        <p>(This post is part of a series studying the AngularJS injector) The getService function is the work-horse of invoke. This is the method that takes a service name and attempts to locate it in the list of registered services. function getService(serviceName) { if (cache.hasOwnProperty(serviceName)) { if (cache[serviceName] === INSTANTIATING) { throw $injectorMinErr('cdep', 'Circular dependency found: {0}', path.join(' &lt;- ')); } return cache[serviceName]; } else { try { path.unshift(serviceName); cache[serviceName] = INSTANTIATING; return cache[serviceName] = factory(serviceName); } catch (err) { if (cache[serviceName] === INSTANTIATING) { delete cache[serviceName]; } throw err; } finally { path.shift(); } } } When the injector is created it is passed two parameters, cache and factory. <a class="read-more" href="/studying-the-angular-injector-getservice/">&raquo;</a></p>
+    </section>
+    <footer class="post-meta">
+        
+            <img class="author-thumb" src="http://localhost:1313/img/logo.gif" alt="Author image" nopin="nopin" />
+        
+        
+        on
+            
+                <a href="http://localhost:1313/tags/javascript/">#javascript</a>,
+            
+                <a href="http://localhost:1313/tags/angularjs/">#angularjs</a>,
+            
+        
+        <time class="post-date" datetime="2014-02-24T00:00:00Z">
+            24 Feb 2014
+        </time>
+    </footer>
+</article>
+
+	
+	   
+<article class="post ">
+    <header class="post-header">
+        <h2 class="post-title"><a href="/studying-the-angular-js-injector-instantiate/">Studying the Angular JS Injector - instantiate</a></h2>
+    </header>
+    <section class="post-excerpt">
+        <p>(This post is part of a series studying the AngularJS injector) Whilst invoke calls a function with it&rsquo;s parameters injected, instantiate will contruct a new object with it&rsquo;s constructor parameters injected. instantiate gives us an excellent insight into how javascript objects work. In javascript, a class is just a function and an class instance is just a function that has been invoked with the new operator. Say we have a simple class : function Person(firstName, lastName) { this.firstName = firstName; this.lastName = lastName; } We can add methods to this class via the functions prototype property. <a class="read-more" href="/studying-the-angular-js-injector-instantiate/">&raquo;</a></p>
+    </section>
+    <footer class="post-meta">
+        
+            <img class="author-thumb" src="http://localhost:1313/img/logo.gif" alt="Author image" nopin="nopin" />
+        
+        
+        on
+            
+                <a href="http://localhost:1313/tags/javascript/">#javascript</a>,
+            
+                <a href="http://localhost:1313/tags/angularjs/">#angularjs</a>,
+            
+        
+        <time class="post-date" datetime="2014-02-24T00:00:00Z">
+            24 Feb 2014
+        </time>
+    </footer>
+</article>
+
+	
+	   
+<article class="post ">
+    <header class="post-header">
+        <h2 class="post-title"><a href="/studying-the-angular-injector-invoke/">Studying the Angular JS Injector - invoke</a></h2>
+    </header>
+    <section class="post-excerpt">
+        <p>(This post is part of a series studying the AngularJS injector) The invoke method invokes the given function with the parameters injected. function invoke(fn, self, locals){ var args = [], $inject = annotate(fn), length, i, key; for(i = 0, length = $inject.length; i &lt; length; i++) { key = $inject[i]; if (typeof key !== 'string') { throw $injectorMinErr('itkn', 'Incorrect injection token! Expected service name as string, got {0}', key); } args.push( locals &amp;&amp; locals.hasOwnProperty(key) ? <a class="read-more" href="/studying-the-angular-injector-invoke/">&raquo;</a></p>
+    </section>
+    <footer class="post-meta">
+        
+            <img class="author-thumb" src="http://localhost:1313/img/logo.gif" alt="Author image" nopin="nopin" />
+        
+        
+        on
+            
+                <a href="http://localhost:1313/tags/javascript/">#javascript</a>,
+            
+                <a href="http://localhost:1313/tags/angularjs/">#angularjs</a>,
+            
+        
+        <time class="post-date" datetime="2014-02-24T00:00:00Z">
+            24 Feb 2014
+        </time>
+    </footer>
+</article>
+
+	
+	   
+<article class="post ">
+    <header class="post-header">
+        <h2 class="post-title"><a href="/studying-the-angular-injector-annotate/">Studying the Angular JS Injector - annotate</a></h2>
+    </header>
+    <section class="post-excerpt">
+        <p>(This post is part of a series studying the AngularJS injector) In order for the Injector to know what to inject into a given functions parameters, it needs a list of these parameters. This is what the annotate function does. There are three different ways in Angular to annotate your methods. Use an array. The last element of the array is the function, the rest is a list of the parameter names. <a class="read-more" href="/studying-the-angular-injector-annotate/">&raquo;</a></p>
+    </section>
+    <footer class="post-meta">
+        
+            <img class="author-thumb" src="http://localhost:1313/img/logo.gif" alt="Author image" nopin="nopin" />
+        
+        
+        on
+            
+                <a href="http://localhost:1313/tags/javascript/">#javascript</a>,
+            
+                <a href="http://localhost:1313/tags/angularjs/">#angularjs</a>,
+            
+        
+        <time class="post-date" datetime="2014-02-19T00:00:00Z">
+            19 Feb 2014
+        </time>
+    </footer>
+</article>
+
+	
+	   
+<article class="post ">
+    <header class="post-header">
+        <h2 class="post-title"><a href="/studying-the-angular-injector/">Studying the Angular JS Injector - intro</a></h2>
+    </header>
+    <section class="post-excerpt">
+        <p>I am truly impressed with the elegance of AngularJS and have been studying the source code to fully understand it. In this series I will be studying the Injector module as this is one of the core modules around which the rest of the framework revolves. In src/auto/injector.js there is a method createInjector. It is this method that kicks off the whole process. After a bit of setup this method returns an instanceInjector object. <a class="read-more" href="/studying-the-angular-injector/">&raquo;</a></p>
+    </section>
+    <footer class="post-meta">
+        
+            <img class="author-thumb" src="http://localhost:1313/img/logo.gif" alt="Author image" nopin="nopin" />
+        
+        
+        on
+            
+                <a href="http://localhost:1313/tags/javascript/">#javascript</a>,
+            
+                <a href="http://localhost:1313/tags/angularjs/">#angularjs</a>,
+            
+        
+        <time class="post-date" datetime="2014-02-19T00:00:00Z">
+            19 Feb 2014
+        </time>
+    </footer>
+</article>
+
+	
+
+	<nav class="pagination" role="navigation">
+	
+	<span class="page-number">Page 1 of 1</span>
+	
+</nav>
+
+</main>
+
+
+
+    <footer class="site-footer clearfix">
+        <section class="copyright"><a href="">Tao of Code</a> All rights reserved - 2015</section>
+        
+        <section class="poweredby">Proudly generated by <a class="icon-hugo" href="http://gohugo.io">HUGO</a>, with <a class="icon-theme" href="https://github.com/vjeantet/hugo-theme-casper">Casper</a> theme</section>
+        
+    </footer>
+    </div>
+    <script type="text/javascript" src="http://localhost:1313/js/jquery.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/index.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+</body>
+</html>

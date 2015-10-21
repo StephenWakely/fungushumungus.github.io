@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  	<meta property="og:title" content=" On Triangles &middot;  Tao of Code" />
+  	<meta property="og:site_name" content="Tao of Code" />
+  	<meta property="og:url" content="http://localhost:1313/on-triangles/" />
+    
+    
+  	<meta property="og:type" content="article" />
+
+    <meta property="og:article:published_time" content="2015-10-20T00:00:00Z" />
+
+    
+    <meta property="og:article:tag" content="clojure" />
+    
+    
+
+  <title>
+     On Triangles &middot;  Tao of Code
+  </title>
+
+    <meta name="description" content="The sound of recursion" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="http://localhost:1313/images/favicon.ico">
+	  <link rel="apple-touch-icon" href="http://localhost:1313/images/apple-touch-icon.png" />
+    
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/nav.css" />
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/solarized_dark.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400|Inconsolata" />
+
+
+    
+      
+          <link href="http://localhost:1313/index.xml" rel="alternate" type="application/rss+xml" title="Tao of Code" />
+      
+      
+    
+    <meta name="generator" content="Hugo 0.14" />
+
+    <link rel="canonical" href="http://localhost:1313/on-triangles/" />
+
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48094087-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+    
+</head>
+<body class="nav-closed">
+
+  <div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        
+        
+        
+    </ul>
+    
+    
+    <a class="subscribe-button icon-feed" href="http://localhost:1313/index.xml">Subscribe</a>
+    
+</div>
+<span class="nav-cover"></span>
+
+
+ <div class="site-wrapper">
+
+
+
+
+
+<header class="main-header post-head no-cover">
+    <nav class="main-nav overlay clearfix">
+
+
+      
+        <a class="blog-logo" href="http://localhost:1313/"><img src="http://localhost:1313/img/logo.gif" alt="Home" /></a>
+      
+      
+        
+          <a class="menu-button icon-feed" href="">&nbsp;&nbsp;Subscribe</a>
+        
+      
+    </nav>
+
+    
+
+
+</header>
+
+
+
+<main class="content" role="main">
+
+
+
+
+  <article class="post ">
+    <header class="post-header">
+      <nav class="breadcrumb">
+        
+        
+        
+      </nav>
+      
+
+        <h1 class="post-title">On Triangles</h1>
+        <small></small>
+
+        <section class="post-meta">
+        
+         
+          <span class="post-tag small"><a href="http://localhost:1313/tags/clojure/">#clojure</a></span>
+         
+        </section>
+    </header>
+  
+    <section class="post-content">
+
+
+
+
+<p>In <a href="ttps://mitpress.mit.edu/sicp/full-text/book/book-Z-H-11.html#%_sec_1.2.2">SICP 1.2.2 Tree Recursion</a> we have Exercise 1.12 which asks us to code up a recursive solution to compute the elements of Pascals Triangle.</p>
+
+<pre><code>    1
+   1 1
+  1 2 1
+ 1 3 3 1
+1 4 6 4 1
+</code></pre>
+
+<p>Pascals Triangle has two rules - the numbers on the edge are 1 and the numbers inside the triangle is the sum of the two numbers in the previous row.</p>
+
+<p>A recursive solution is fairly simple :</p>
+
+<p>(in Clojure)</p>
+
+<pre><code class="language-language-clojure">(defn triangle
+  [col row]
+  (if (or (= col 0) (= col row))
+       1
+       (+ (triangle (dec col) (dec row))
+          (triangle col (dec row)))))
+</code></pre>
+
+<p>If the column is the first or the last one return 0 otherwise recurse up to get the two values in the prior row. These are then summed and returned. We can print out our triangle with some nested loops :</p>
+
+<pre><code>(doseq [row (range 0 5)]
+  (doseq [col (range 0 (inc row))]
+    (print (triangle col row) &quot; &quot;))
+  (println))
+
+1  
+1  1  
+1  2  1  
+1  3  3  1  
+1  4  6  4  1  
+</code></pre>
+
+<p>This is all good, but quite unsatisfying. It would be better if we could get the entire row in a single call:</p>
+
+<pre><code>(defn pad
+  [row]
+  (concat '(0) row '(0)))
+
+(defn triangle2
+  [row]
+  (if (= 0 row)
+    '(1)
+    (let [previous (pad (triangle2 (dec row)))]
+      (map +' previous (next previous)))))
+</code></pre>
+
+<p>Here we recurse down to the first row, which returns <code>'(1)</code>. Then for each successive row we pad the prior one with 0, so <code>'(1 2 1)</code> becomes <code>'(0 1 2 1 0)</code>. And then we add that row with itself offset by one using <code>map</code>:</p>
+
+<pre><code>  (0 1 2 1 0)
+  (1 2 1 0)
+  -----------
+  (1 3 3 1)
+</code></pre>
+
+<p>And we can print out our triangle :</p>
+
+<pre><code>(doseq [row (range 5)] (println (triangle2 row)))
+
+(1)
+(1 1)
+(1 2 1)
+(1 3 3 1)
+(1 4 6 4 1)
+nil
+</code></pre>
+
+<p>However this is hopelessly inefficient. For each row we have to calculate the prior rows, every time. It would be much better and more idiomatic if we could create a lazy sequence of these rows so that each step builds on the prior ones.</p>
+
+<pre><code>(defn lazy-triangle
+  ([] (lazy-triangle '(1)))
+  ([previous]
+   (lazy-seq
+       (cons previous
+          (lazy-triangle (let [padded (pad previous)]
+                           (map +' padded (next padded))))))))
+</code></pre>
+
+<p>Here we cons the previous row to a lazy-seq to build up our lazy sequence:</p>
+
+<pre><code>(doseq [row (take 5 (lazy-triangle))] (println row))
+
+(1)
+(1 1)
+(1 2 1)
+(1 3 3 1)
+(1 4 6 4 1)
+nil
+</code></pre>
+
+<p>The above function can be rewritten much more succintly using <a href="http://clojuredocs.org/clojure.core/iterate">iterate</a> :</p>
+
+<pre><code>(def lazy-triangle2 (iterate (fn [previous]
+                               (let [padded (pad previous)]
+                                 (map +' padded (next padded))))
+                             '(1)))
+</code></pre>
+
+<pre><code>(doseq [row (take 5 lazy-triangle2)] (println row))
+
+(1)
+(1 1)
+(1 2 1)
+(1 3 3 1)
+(1 4 6 4 1)
+nil
+</code></pre>
+
+<h2 id="sierpinski-triangle:d992317aacfe2cfd22e5b82457a6da35">Sierpinski Triangle</h2>
+
+<p>Now the interesting thing about Pascals Triangle is that if you keep the odd numbers and clear out the even numbers, you end up with <a href="https://en.wikipedia.org/wiki/Sierpinski_triangle">Sierpinski&rsquo;s triangle</a>. Lets try it. Now instead of adding the rows together, we will add and then Mod with 2 to ensure we only have 1 or 0 in our triangle.</p>
+
+<pre><code>(defn +mod2
+  [a b]
+  (mod (+ a b) 2))
+
+(def sierpinski-triangle (iterate (fn [previous]
+                                    (let [padded (pad previous)]
+                                      (map +mod2 padded (next padded))))
+                                  '(1)))
+</code></pre>
+
+<pre><code>(doseq [row (take 10 sierpinski-triangle)] (println row))
+
+(1)
+(1 1)
+(1 0 1)
+(1 1 1 1)
+(1 0 0 0 1)
+(1 1 0 0 1 1)
+(1 0 1 0 1 0 1)
+(1 1 1 1 1 1 1 1)
+(1 0 0 0 0 0 0 0 1)
+(1 1 0 0 0 0 0 0 1 1)
+nil
+</code></pre>
+
+<p>Now you do have to squint a little in order to see the triangle there - ideally the rows would be centralised, but the triangle is there.</p>
+
+<h2 id="sierpinski-pyramid:d992317aacfe2cfd22e5b82457a6da35">Sierpinski Pyramid</h2>
+
+<p>Lets expand our pyramid into the third dimension.</p>
+
+<p>Adding a new dimension means instead of each row being represented by a vector, it will now be a vector of vectors. Something like :</p>
+
+<pre><code>[[1]]
+[[1 1]
+ [1 1]]
+[[1 1 1]
+ [1 0 1]
+ [1 1 1]]]
+</code></pre>
+
+<p>Iterating over each row will look something like :</p>
+
+<pre><code>
+(iterate next-level [[1]])
+
+</code></pre>
+
+<p>As before we first need to pad each row. This time we need to do it in 3 dimensions.</p>
+
+<pre><code>(defn pad
+  [previous]
+  (let [len (-&gt; previous count (+ 2))]
+    `(~(repeat len 0)
+      ~@(map (fn [a] `(0 ~@a 0)) previous)
+      ~(repeat len 0))))
+</code></pre>
+
+<p>We get the length (note each level of the pyramid is a square, the length and width will always be equal) of the previous level and add two (one for each side). Then we add a new list of zeros at the start and end of the previous rows - each of which is also mapped to add zeros around each row.</p>
+
+<p>We are taking advantage of Clojures list templating features to help us build up our list. Usually these are used for macros, but they can be very useful to easily build up lists as well.</p>
+
+<p>When creating a 2d triangle, we would add the numbers from the two columns above in the preceeding level. Now that we are in 3d we need to add the four numbers from the above rows and columns in both directions. To acheive this we need to pair each vector within the level above:</p>
+
+<pre><code>(defn pairs
+  [[x &amp; xs]]
+  (lazy-seq
+   (cons [x (first xs)]
+         (if (seq (rest xs))
+           (pairs xs)
+           nil))))
+</code></pre>
+
+<p>The pairs function creates a sequence of vectors of each row in the list together with the ensuing row.</p>
+
+<pre><code>
+ (pairs [[0 0 0] [0 1 0] [0 0 0]])
+
+([[0 0 0] [0 1 0]]
+ [[0 1 0] [0 0 0]])
+
+</code></pre>
+
+<p>Now that we have each pair of padded rows, we can add them up.</p>
+
+<pre><code>
+(map (fn [[a b]]
+     (map +mod2 a b (next a) (next b)))
+     pairs)
+
+</code></pre>
+
+<p>We have a nested map so we can get each pair of rows and each pair of columns within those rows. This gives us the four values above which combine to make the value for this column.</p>
+
+<p>We can then put this all together with the following function.</p>
+
+<pre><code>
+(defn next-level
+  [previous]
+  (-&gt;&gt; previous pad pairs add-rows))
+
+</code></pre>
+
+<p>We can now create our 3D pyramid.</p>
+
+<pre><code>
+(take 4 (iterate next-level [[1]]))
+
+([[1]] [[1 1] [1 1]] [[1 0 1] [0 0 0] [1 0 1]] [[1 1 1 1] [1 1 1 1] [1 1 1 1] [1 1 1 1]])
+
+</code></pre>
+
+<p>This isn&rsquo;t a particularly pleasant way to view our pyramid. Minecraft would be a much better way. Using <a href="https://github.com/SevereOverfl0w/bukkure">Bukkure</a> we can create plugins for Minecraft in Clojure.</p>
+
+<p>Here are some of our pyramids :</p>
+
+<p><img src="/img/shot1.png" alt="Sierpinski Pyramid" />
+</p>
+
+<p><img src="/img/shot2.png" alt="Sierpinski Pyramid" />
+</p>
+
+<p>Flying around a pyramid can be particularly satisfying.</p>
+
+<p><img src="/img/pyramid.gif" alt="Sierpinski Pyramid" />
+</p>
+
+<p>The source code for the plugin can be found <a href="https://github.com/FungusHumungus/bukkure-fractalz">here</a>.</p>
+
+
+
+
+
+
+
+
+
+    </section>
+
+
+  <footer class="post-footer">
+
+
+    
+    <figure class="author-image">
+        <a class="img" href="http://localhost:1313/" style="background-image: url(http://localhost:1313/img/logo.gif)"><span class="hidden">'s Picture</span></a>
+    </figure>
+    
+
+    
+
+
+
+
+
+<section class="author">
+  <h4><a href="http://localhost:1313/"></a></h4>
+  
+  <p>Code Monkey</p>
+  
+  <div class="author-meta">
+    
+    <span class="author-link icon-link"><a href="http://taoofcode.net">http://taoofcode.net</a></span>
+  </div>
+</section>
+
+
+
+    
+<section class="share">
+  <h4>Share this page</h4>
+  <a class="icon-twitter" style="font-size: 1.4em" href="https://twitter.com/share?text=On%20Triangles&amp;url=http%3a%2f%2flocalhost%3a1313%2fon-triangles%2f"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+      <span class="hidden">Twitter</span>
+  </a>
+  <a class="icon-facebook" style="font-size: 1.4em" href="https://www.facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fon-triangles%2f"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+      <span class="hidden">Facebook</span>
+  </a>
+  <a class="icon-pinterest" style="font-size: 1.4em" href="http://pinterest.com/pin/create/button/?url=http%3a%2f%2flocalhost%3a1313%2fon-triangles%2f&amp;description=On%20Triangles"
+      onclick="window.open(this.href, 'pinterest-share','width=580,height=296');return false;">
+      <span class="hidden">Pinterest</span>
+  </a>
+  <a class="icon-google-plus" style="font-size: 1.4em" href="https://plus.google.com/share?url=http%3a%2f%2flocalhost%3a1313%2fon-triangles%2f"
+     onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+      <span class="hidden">Google+</span>
+  </a>
+</section>
+
+
+
+    
+    
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname = 'taoofcode';
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    
+    
+
+  </footer>
+</article>
+
+</main>
+    <footer class="site-footer clearfix">
+        <section class="copyright"><a href="">Tao of Code</a> All rights reserved - 2015</section>
+        
+        <section class="poweredby">Proudly generated by <a class="icon-hugo" href="http://gohugo.io">HUGO</a>, with <a class="icon-theme" href="https://github.com/vjeantet/hugo-theme-casper">Casper</a> theme</section>
+        
+    </footer>
+    </div>
+    <script type="text/javascript" src="http://localhost:1313/js/jquery.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/index.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+</body>
+</html>
+

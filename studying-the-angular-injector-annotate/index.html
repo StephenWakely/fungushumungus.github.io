@@ -1,197 +1,400 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<html lang="en-us">
 <head>
-    <meta charset="utf-8"/>
-    <title>Tao of Code: Studying the Angular JS Injector - annotate</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700' rel='stylesheet'
-          type='text/css'>
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/androidstudio.css">
-    <link href="../css/screen.css" rel="stylesheet" type="text/css" />
-</head>
-<body>
-
-
-<nav class="navbar navbar-default">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/index.html">Tao of Code</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav navbar-right">
-                <li ><a href="/index.html">Home</a></li>
-                
-                <li><a href="/feed.xml">RSS</a></li>
-            </ul>
-        </div><!--/.nav-collapse -->
-    </div><!--/.container-fluid -->
-</nav>
-
-
-<div class="container">
-
-
-    <div class="row">
-        <div class="col-lg-9">
-            <div id="content">
-                
-<div id="post">
-    <div id="post-header">
-    <div id="post-meta" class="row">
-        <div class="col-lg-6">February 19, 2014</div>
-        
-    </div>
-    <h2>Studying the Angular JS Injector - annotate</h2>
-</div>
-<div>
     
-    <p>(This post is part of a series <a href='http://taoofcode.net/studying-the-angular-injector/'>studying the AngularJS injector</a>)</p><p>In order for the Injector to know what to inject into a given functions parameters, it needs a list of these parameters. This is what the <code>annotate</code> function does.</p><p>There are three different ways in Angular to annotate your methods.</p><ul><li>Use an array. The last element of the array is the function, the rest is a list of the parameter names.<pre><code class="language-javascript">&#91;'$scope', '$q', function&#40;$scope, $q&#41; {}
-</code></pre></li><li>Add a <code>$inject</code> property to the function containing a list of the parameters.<pre><code class="language-javascript">function myFunction&#40;$scope, $q&#41; {}
-myFunction.$inject = &#91;'$scope', '$q'&#93;;
-</code></pre></li><li>Nothing at all. Angular can parse the parameters straight out of the function. This does not work when your code is minified since the minification renames your parameters to the smallest length possible.<pre><code class="language-javascript">function myFunction&#40;$scope, $q&#41; {}
-</code></pre></li></ul><p>Lets look at the code.</p><pre><code class="language-javascript">var FN&#95;ARGS = /&#94;function\s&#42;&#91;&#94;\&#40;&#93;&#42;\&#40;\s&#42;&#40;&#91;&#94;\&#41;&#93;&#42;&#41;\&#41;/m;
-var FN&#95;ARG&#95;SPLIT = /,/;
-var FN&#95;ARG = /&#94;\s&#42;&#40;&#95;?&#41;&#40;\S+?&#41;\1\s&#42;$/;
-var STRIP&#95;COMMENTS = /&#40;&#40;\/\/.&#42;$&#41;|&#40;\/\&#42;&#91;\s\S&#93;&#42;?\&#42;\/&#41;&#41;/mg;
-var $injectorMinErr = minErr&#40;'$injector'&#41;;
-function annotate&#40;fn&#41; {
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  	<meta property="og:title" content=" Studying the Angular JS Injector - annotate &middot;  Tao of Code" />
+  	<meta property="og:site_name" content="Tao of Code" />
+  	<meta property="og:url" content="http://localhost:1313/studying-the-angular-injector-annotate/" />
+    
+    
+  	<meta property="og:type" content="article" />
+
+    <meta property="og:article:published_time" content="2014-02-19T00:00:00Z" />
+
+    
+    <meta property="og:article:tag" content="javascript" />
+    
+    <meta property="og:article:tag" content="angularjs" />
+    
+    
+
+  <title>
+     Studying the Angular JS Injector - annotate &middot;  Tao of Code
+  </title>
+
+    <meta name="description" content="The sound of recursion" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="http://localhost:1313/images/favicon.ico">
+	  <link rel="apple-touch-icon" href="http://localhost:1313/images/apple-touch-icon.png" />
+    
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/nav.css" />
+    <link rel="stylesheet" type="text/css" href="http://localhost:1313/css/solarized_dark.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400|Inconsolata" />
+
+
+    
+      
+          <link href="http://localhost:1313/index.xml" rel="alternate" type="application/rss+xml" title="Tao of Code" />
+      
+      
+    
+    <meta name="generator" content="Hugo 0.14" />
+
+    <link rel="canonical" href="http://localhost:1313/studying-the-angular-injector-annotate/" />
+
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48094087-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+    
+</head>
+<body class="nav-closed">
+
+  <div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        
+        
+        
+    </ul>
+    
+    
+    <a class="subscribe-button icon-feed" href="http://localhost:1313/index.xml">Subscribe</a>
+    
+</div>
+<span class="nav-cover"></span>
+
+
+ <div class="site-wrapper">
+
+
+
+
+
+<header class="main-header post-head no-cover">
+    <nav class="main-nav overlay clearfix">
+
+
+      
+        <a class="blog-logo" href="http://localhost:1313/"><img src="http://localhost:1313/img/logo.gif" alt="Home" /></a>
+      
+      
+        
+          <a class="menu-button icon-feed" href="">&nbsp;&nbsp;Subscribe</a>
+        
+      
+    </nav>
+
+    
+
+
+</header>
+
+
+
+<main class="content" role="main">
+
+
+
+
+  <article class="post ">
+    <header class="post-header">
+      <nav class="breadcrumb">
+        
+        
+        
+      </nav>
+      
+
+        <h1 class="post-title">Studying the Angular JS Injector - annotate</h1>
+        <small></small>
+
+        <section class="post-meta">
+        
+         
+          <span class="post-tag small"><a href="http://localhost:1313/tags/javascript/">#javascript</a></span>
+         
+          <span class="post-tag small"><a href="http://localhost:1313/tags/angularjs/">#angularjs</a></span>
+         
+        </section>
+    </header>
+  
+    <section class="post-content">
+
+
+<p>(This post is part of a series <a href="http://taoofcode.net/studying-the-angular-injector/">studying the AngularJS injector</a>)</p>
+
+<p>In order for the Injector to know what to inject into a given functions parameters, it needs a list of these parameters. This is what the <code>annotate</code> function does.</p>
+
+<p>There are three different ways in Angular to annotate your methods.</p>
+
+<ul>
+<li><p>Use an array. The last element of the array is the function, the rest is a list of the parameter names.
+<code>language-javascript
+['$scope', '$q', function($scope, $q) {}
+</code></p></li>
+
+<li><p>Add a <code>$inject</code> property to the function containing a list of the parameters.
+<code>language-javascript
+function myFunction($scope, $q) {}
+myFunction.$inject = ['$scope', '$q'];
+</code></p></li>
+
+<li><p>Nothing at all. Angular can parse the parameters straight out of the function. This does not work when your code is minified since the minification renames your parameters to the smallest length possible.
+<code>language-javascript
+function myFunction($scope, $q) {}
+</code></p></li>
+</ul>
+
+<p>Lets look at the code.</p>
+
+<pre><code class="language-language-javascript">var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+var FN_ARG_SPLIT = /,/;
+var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
+var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+var $injectorMinErr = minErr('$injector');
+function annotate(fn) {
   var $inject,
       fnText,
       argDecl,
       last;
 
-  if &#40;typeof fn == 'function'&#41; {
-    if &#40;!&#40;$inject = fn.$inject&#41;&#41; {
-      $inject = &#91;&#93;;
-      if &#40;fn.length&#41; {
-        fnText = fn.toString&#40;&#41;.replace&#40;STRIP&#95;COMMENTS, ''&#41;;
-        argDecl = fnText.match&#40;FN&#95;ARGS&#41;;
-        forEach&#40;argDecl&#91;1&#93;.split&#40;FN&#95;ARG&#95;SPLIT&#41;, function&#40;arg&#41;{
-          arg.replace&#40;FN&#95;ARG, function&#40;all, underscore, name&#41;{
-            $inject.push&#40;name&#41;;
-          }&#41;;
-        }&#41;;
+  if (typeof fn == 'function') {
+    if (!($inject = fn.$inject)) {
+      $inject = [];
+      if (fn.length) {
+        fnText = fn.toString().replace(STRIP_COMMENTS, '');
+        argDecl = fnText.match(FN_ARGS);
+        forEach(argDecl[1].split(FN_ARG_SPLIT), function(arg){
+          arg.replace(FN_ARG, function(all, underscore, name){
+            $inject.push(name);
+          });
+        });
       }
       fn.$inject = $inject;
     }
-  } else if &#40;isArray&#40;fn&#41;&#41; {
+  } else if (isArray(fn)) {
     last = fn.length - 1;
-    assertArgFn&#40;fn&#91;last&#93;, 'fn'&#41;;
-    $inject = fn.slice&#40;0, last&#41;;
+    assertArgFn(fn[last], 'fn');
+    $inject = fn.slice(0, last);
   } else {
-    assertArgFn&#40;fn, 'fn', true&#41;;
+    assertArgFn(fn, 'fn', true);
   }
   return $inject;
 }
-</code></pre><p><code>annotate</code> is passed either an array or a function.</p><p>If an array has been passed into <code>annotate</code>, it is assumed to be in the first form (<code>&#91;'$scope', function&#40;$scope&#41; {..</code>). In this case, we assert that the last element in the array is a function and then remove that element returning the array.</p><p>If it is just a function passed in, first it checks if the function has already been annotated by setting a <code>$inject</code> property.<pre><code class="language-javascript">    if &#40;!&#40;$inject = fn.$inject&#41;&#41; {
- </code></pre></p><p>If it hasn't been, we need to extract the parameters from the function definition itself. This part of the code gives us an enjoyable journey through the power of regular expressions.<pre><code class="language-javascript">      $inject = &#91;&#93;;
-      if &#40;fn.length&#41; {
-        fnText = fn.toString&#40;&#41;.replace&#40;STRIP&#95;COMMENTS, ''&#41;;
-        argDecl = fnText.match&#40;FN&#95;ARGS&#41;;
-        forEach&#40;argDecl&#91;1&#93;.split&#40;FN&#95;ARG&#95;SPLIT&#41;, function&#40;arg&#41;{
-          arg.replace&#40;FN&#95;ARG, function&#40;all, underscore, name&#41;{
-            $inject.push&#40;name&#41;;
-          }&#41;;
-        }&#41;;
+</code></pre>
+
+<p><code>annotate</code> is passed either an array or a function.</p>
+
+<p>If an array has been passed into <code>annotate</code>, it is assumed to be in the first form (<code>['$scope', function($scope) {..</code>). In this case, we assert that the last element in the array is a function and then remove that element returning the array.</p>
+
+<p>If it is just a function passed in, first it checks if the function has already been annotated by setting a <code>$inject</code> property.
+<code>language-javascript
+    if (!($inject = fn.$inject)) {
+</code></p>
+
+<p>If it hasn&rsquo;t been, we need to extract the parameters from the function definition itself. This part of the code gives us an enjoyable journey through the power of regular expressions.
+<code>language-javascript
+      $inject = [];
+      if (fn.length) {
+        fnText = fn.toString().replace(STRIP_COMMENTS, '');
+        argDecl = fnText.match(FN_ARGS);
+        forEach(argDecl[1].split(FN_ARG_SPLIT), function(arg){
+          arg.replace(FN_ARG, function(all, underscore, name){
+            $inject.push(name);
+          });
+        });
       }
- </code></pre></p><p>Angular takes advantage of the fact that calling <code>toString&#40;&#41;</code> on a function definition returns the full text of the function. We can see this in the nodejs repl:<pre><code class="language-javascript">&gt; var x = function&#40;a,b,c&#41; { };
+</code></p>
+
+<p>Angular takes advantage of the fact that calling <code>toString()</code> on a function definition returns the full text of the function. We can see this in the nodejs repl:
+<code>language-javascript
+&gt; var x = function(a,b,c) { };
 undefined
-&gt; x.toString&#40;&#41;;
-'function&#40;a,b,c&#41; { }'
- </code></pre></p><p><code>toString&#40;&#41;</code> returns the function exactly as it has been entered in the script, including comments.</p><p>These comments get in the way of parsing the parameters, so first the method strips any comments from the function. Anything that matches the regex <code>/&#40;&#40;\/\/.&#42;$&#41;|&#40;\/&amp;#42;&#91;\s\S&#93;&#42;?&amp;#42;\/&#41;&#41;/mg</code> is removed. The first part of that regex (<code>&#40;\/\/.&#42;$&#41;</code>) matches anything starting with // up to the end of the line. The second part (<code>&#40;\/&amp;#42;&#91;\s\S&#93;&#42;?&amp;#42;\/&#41;</code>) matches anything between a /<em> and </em>/. </p><p>Let's see if this works :</p><pre><code class="language-javascript">&gt;var fn = function&#40;c/&#42;a parameter&#42;/, a, // More parameters
-...                 /&#42; Interesting &#42;/ r&#41; { };
-&gt; fn.toString&#40;&#41;.replace&#40;/&#40;&#40;\/\/.&#42;$&#41;|&#40;\/\&#42;&#91;\s\S&#93;&#42;?\&#42;\/&#41;&#41;/mg, ''&#41;;
-'function &#40;c, a,
-                  r&#41; { }'
-</code></pre><p>It works, the comments are stripped out.</p><p>Next it pulls out the argument list with the regex match : <code>/&#94;function\s&#42;&#91;&#94;&amp;#40;&#93;&#42;&amp;#40;\s&#42;&#40;&#91;&#94;&amp;#41;&#93;&#42;&#41;&amp;#41;/m</code></p><p>This regex is bordering on the complex. Let's break it down.</p><ul><li><strong><sup></strong></sup> : From the start of the string</li><li><strong>function</strong> : match the text <em>function</em></li><li>**\s*** : any amount of whitespace</li><li>**[<sup>&#92;(]***</sup> : any character that is not a '('. This will be whitespace and the function name.</li><li><strong>&#92;(</strong> : the '(' character. Note ( is a special char in regular expressions, so the '\' is needed to escape it and make the regex treat it as a real character.</li><li>**\s*** : more whitespace</li><li><strong>([<sup>&#41;]*)</strong></sup> : Any character that is not a ')'. Also note that this part of the pattern is within '(' and ')'. This is a group and means we are especially interested in what is matched here.</li><li><strong>&#41;</strong> : The closing ')'. </li></ul><p>Does it work?</p><pre><code class="language-javascript">&gt;fnText.match&#40;/&#94;function\s&#42;&#91;&#94;\&#40;&#93;&#42;\&#40;\s&#42;&#40;&#91;&#94;\&#41;&#93;&#42;&#41;\&#41;/m&#41;
-&#91; 'function &#40;c, a, \r\n                  r&#41;',
+&gt; x.toString();
+'function(a,b,c) { }'
+</code></p>
+
+<p><code>toString()</code> returns the function exactly as it has been entered in the script, including comments.</p>
+
+<p>These comments get in the way of parsing the parameters, so first the method strips any comments from the function. Anything that matches the regex <code>/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg</code> is removed. The first part of that regex (<code>(\/\/.*$)</code>) matches anything starting with // up to the end of the line. The second part (<code>(\/\*[\s\S]*?\*\/)</code>) matches anything between a /* and */.</p>
+
+<p>Let&rsquo;s see if this works :</p>
+
+<pre><code class="language-language-javascript">&gt;var fn = function(c/*a parameter*/, a, // More parameters
+...                 /* Interesting */ r) { };
+&gt; fn.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
+'function (c, a,
+                  r) { }'
+</code></pre>
+
+<p>It works, the comments are stripped out.</p>
+
+<p>Next it pulls out the argument list with the regex match : <code>/^function\s*[^\(]*\(\s*([^\)]*)\)/m</code></p>
+
+<p>This regex is bordering on the complex. Let&rsquo;s break it down.</p>
+
+<ul>
+<li><strong>^</strong> : From the start of the string</li>
+<li><strong>function</strong> : match the text <em>function</em></li>
+<li><strong>\s</strong>* : any amount of whitespace</li>
+<li><strong>[^\(]</strong>* : any character that is not a &lsquo;(&rsquo;. This will be whitespace and the function name.</li>
+<li><strong>\(</strong> : the &lsquo;(&rsquo; character. Note ( is a special char in regular expressions, so the &lsquo;\&rsquo; is needed to escape it and make the regex treat it as a real character.</li>
+<li><strong>\s</strong>* : more whitespace</li>
+<li><strong>([^)]*)</strong> : Any character that is not a &lsquo;)&rsquo;. Also note that this part of the pattern is within &lsquo;(&rsquo; and &lsquo;)&rsquo;. This is a group and means we are especially interested in what is matched here.</li>
+<li><strong>)</strong> : The closing &lsquo;)&rsquo;.</li>
+</ul>
+
+<p>Does it work?</p>
+
+<pre><code class="language-language-javascript">&gt;fnText.match(/^function\s*[^\(]*\(\s*([^\)]*)\)/m)
+[ 'function (c, a, \r\n                  r)',
   'c, a, \r\n                  r',
   index: 0,
-  input: 'function &#40;c, a, \r\n                  r&#41; { }' &#93;
-</code></pre><p><code>match</code> returns an array of the matches found by the regex. The first element in the array is the whole text matched. Each ensuing element is each group found within the regex. The group matched here is anything between the brackets after the text 'function'. In this case it is the text <code>'c, a, \r\n                  r',</code> which is our parameter list (plus the newlines and white space).</p><p>The code then splits this string at the commas. For each of these then does a further call to replace.<pre><code class="language-javascript">arg.replace&#40;FN&#95;ARG, function&#40;all, underscore, name&#41;{
-            $inject.push&#40;name&#41;;
-          }&#41;;
- </code></pre></p><p>Now looking at the documentation for <a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global&#95;Objects/String/replace'>replace</a> you are supposed to call this function with the search string and a function which is supposed to return the string that you replace it with. This code doesn't do this. Instead it just takes the matched string and pushes it into the <code>$inject</code> array, ignoring any return value. An interesting and neat way to find matches within text.</p><p>Lets look at the regex used to match these parameters <code>/&#94;\s&#42;&#40;&#95;?&#41;&#40;\S+?&#41;\1\s&#42;$/</code> :</p><ul><li><strong><sup></strong></sup> : the beginning of the parameter text</li><li>**&#92;s*** : any amount of whitespace</li><li><strong>(<b>?)</strong> : 0 or more '</b>' characters.</li><li><strong>(\S+?)</strong> : 1 or more non-whitespace characters. The ? makes it a lazy match, it will match as few characters as possible - so this will stop matching when we get to the underscores defined in the next section.</li><li><strong>\1</strong> : This matchs the substring that is the same as that in group 1. This is the underscores. The effect of this is to ensure that if our parameter starts with a certain number of _ characters that it will end with the same amount.</li><li>**\s*** : any amount of whitespace</li></ul><p>An interesting point to take away from this pattern is that in your Angular module you can surround your parameters with any number of underscores and (as long as there is the same amount on either side) these will not be included in the annotation and consequent service location.</p><p>Phew, that's a lot of regex.</p><p>We should now have a list of the parameters which the injector can then use to locate the values to inject into our function.</p><p>Next: <a href='http://taoofcode.net/studying-the-angular-injector-invoke'>invoke</a></p>
-</div>
+  input: 'function (c, a, \r\n                  r) { }' ]
+</code></pre>
 
-<div id="post-tags">
-    <b>Tags: </b>
+<p><code>match</code> returns an array of the matches found by the regex. The first element in the array is the whole text matched. Each ensuing element is each group found within the regex. The group matched here is anything between the brackets after the text &lsquo;function&rsquo;. In this case it is the text <code>'c, a, \r\n                  r',</code> which is our parameter list (plus the newlines and white space).</p>
+
+<p>The code then splits this string at the commas. For each of these then does a further call to replace.
+<code>language-javascript
+arg.replace(FN_ARG, function(all, underscore, name){
+            $inject.push(name);
+          });
+</code></p>
+
+<p>Now looking at the documentation for <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace">replace</a> you are supposed to call this function with the search string and a function which is supposed to return the string that you replace it with. This code doesn&rsquo;t do this. Instead it just takes the matched string and pushes it into the <code>$inject</code> array, ignoring any return value. An interesting and neat way to find matches within text.</p>
+
+<p>Lets look at the regex used to match these parameters <code>/^\s*(_?)(\S+?)\1\s*$/</code> :</p>
+
+<ul>
+<li><strong>^</strong> : the beginning of the parameter text</li>
+<li><strong>\s</strong>* : any amount of whitespace</li>
+<li><strong>(__?)</strong> : 0 or more &lsquo;__&rsquo; characters.</li>
+<li><strong>(\S+?)</strong> : 1 or more non-whitespace characters. The ? makes it a lazy match, it will match as few characters as possible - so this will stop matching when we get to the underscores defined in the next section.</li>
+<li><strong>\1</strong> : This matchs the substring that is the same as that in group 1. This is the underscores. The effect of this is to ensure that if our parameter starts with a certain number of _ characters that it will end with the same amount.</li>
+<li><strong>\s</strong>* : any amount of whitespace</li>
+</ul>
+
+<p>An interesting point to take away from this pattern is that in your Angular module you can surround your parameters with any number of underscores and (as long as there is the same amount on either side) these will not be included in the annotation and consequent service location.</p>
+
+<p>Phew, that&rsquo;s a lot of regex.</p>
+
+<p>We should now have a list of the parameters which the injector can then use to locate the values to inject into our function.</p>
+
+<p>Next: <a href="http://taoofcode.net/studying-the-angular-injector-invoke">invoke</a></p>
+
+
+
+
+
+
+
+
+
+    </section>
+
+
+  <footer class="post-footer">
+
+
     
-    <a href="/tags/angularjs.html">angularjs</a>
+    <figure class="author-image">
+        <a class="img" href="http://localhost:1313/" style="background-image: url(http://localhost:1313/img/logo.gif)"><span class="hidden">'s Picture</span></a>
+    </figure>
     
-    <a href="/tags/javascript.html">javascript</a>
+
     
-</div>
 
 
-    <div id="prev-next">
-        
-        <a href="/studying-the-angular-injector/">&laquo; Studying the Angular JS Injector - intro</a>
-        
-        
-        <a class="right" href="/promise-anti-patterns/">Promise Anti-patterns &raquo;</a>
-        
-    </div>
 
+
+
+<section class="author">
+  <h4><a href="http://localhost:1313/"></a></h4>
+  
+  <p>Code Monkey</p>
+  
+  <div class="author-meta">
+    
+    <span class="author-link icon-link"><a href="http://taoofcode.net">http://taoofcode.net</a></span>
+  </div>
+</section>
+
+
+
+    
+<section class="share">
+  <h4>Share this page</h4>
+  <a class="icon-twitter" style="font-size: 1.4em" href="https://twitter.com/share?text=Studying%20the%20Angular%20JS%20Injector%20-%20annotate&amp;url=http%3a%2f%2flocalhost%3a1313%2fstudying-the-angular-injector-annotate%2f"
+      onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+      <span class="hidden">Twitter</span>
+  </a>
+  <a class="icon-facebook" style="font-size: 1.4em" href="https://www.facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fstudying-the-angular-injector-annotate%2f"
+      onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+      <span class="hidden">Facebook</span>
+  </a>
+  <a class="icon-pinterest" style="font-size: 1.4em" href="http://pinterest.com/pin/create/button/?url=http%3a%2f%2flocalhost%3a1313%2fstudying-the-angular-injector-annotate%2f&amp;description=Studying%20the%20Angular%20JS%20Injector%20-%20annotate"
+      onclick="window.open(this.href, 'pinterest-share','width=580,height=296');return false;">
+      <span class="hidden">Pinterest</span>
+  </a>
+  <a class="icon-google-plus" style="font-size: 1.4em" href="https://plus.google.com/share?url=http%3a%2f%2flocalhost%3a1313%2fstudying-the-angular-injector-annotate%2f"
+     onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+      <span class="hidden">Google+</span>
+  </a>
+</section>
+
+
+
+    
     
     <div id="disqus_thread"></div>
     <script type="text/javascript">
-        (function() {
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = '//taoofcode.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
+      var disqus_shortname = 'taoofcode';
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
     </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    
     
 
+  </footer>
+</article>
 
-</div>
-
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div id="sidebar">
-                
-                <div id="tags">
-                    <h3>Tags</h3>
-                    <ul>
-                        
-                        <li><a href="/tags/angularjs.html">angularjs</a></li>
-                        
-                        <li><a href="/tags/javascript.html">javascript</a></li>
-                        
-                        <li><a href="/tags/clojure.html">clojure</a></li>
-                        
-                    </ul>
-                </div>
-                
-            </div>
-        </div>
+</main>
+    <footer class="site-footer clearfix">
+        <section class="copyright"><a href="">Tao of Code</a> All rights reserved - 2015</section>
+        
+        <section class="poweredby">Proudly generated by <a class="icon-hugo" href="http://gohugo.io">HUGO</a>, with <a class="icon-theme" href="https://github.com/vjeantet/hugo-theme-casper">Casper</a> theme</section>
+        
+    </footer>
     </div>
-    <footer>
-        <p style="text-align: center;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
-</div>
-<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
-<script src="../js/highlight.pack.js" type="text/javascript"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-  ga('create', 'UA-48094087-1', 'taoofcode.net');
-  ga('send', 'pageview');
-</script>
+    <script type="text/javascript" src="http://localhost:1313/js/jquery.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/index.js"></script>
+    <script type="text/javascript" src="http://localhost:1313/js/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
 </body>
 </html>
 

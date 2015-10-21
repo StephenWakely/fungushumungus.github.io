@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Clojure on Tao of Code</title>
+    <link>http://localhost:1313/tags/clojure/</link>
+    <description>Recent content in Clojure on Tao of Code</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>All rights reserved - 2015</copyright>
+    <lastBuildDate>Tue, 20 Oct 2015 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/clojure/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>On Triangles</title>
+      <link>http://localhost:1313/on-triangles/</link>
+      <pubDate>Tue, 20 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/on-triangles/</guid>
+      <description>
+
+&lt;p&gt;In &lt;a href=&#34;ttps://mitpress.mit.edu/sicp/full-text/book/book-Z-H-11.html#%_sec_1.2.2&#34;&gt;SICP 1.2.2 Tree Recursion&lt;/a&gt; we have Exercise 1.12 which asks us to code up a recursive solution to compute the elements of Pascals Triangle.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    1
+   1 1
+  1 2 1
+ 1 3 3 1
+1 4 6 4 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Pascals Triangle has two rules - the numbers on the edge are 1 and the numbers inside the triangle is the sum of the two numbers in the previous row.&lt;/p&gt;
+
+&lt;p&gt;A recursive solution is fairly simple :&lt;/p&gt;
+
+&lt;p&gt;(in Clojure)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-language-clojure&#34;&gt;(defn triangle
+  [col row]
+  (if (or (= col 0) (= col row))
+       1
+       (+ (triangle (dec col) (dec row))
+          (triangle col (dec row)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If the column is the first or the last one return 0 otherwise recurse up to get the two values in the prior row. These are then summed and returned. We can print out our triangle with some nested loops :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(doseq [row (range 0 5)]
+  (doseq [col (range 0 (inc row))]
+    (print (triangle col row) &amp;quot; &amp;quot;))
+  (println))
+
+1  
+1  1  
+1  2  1  
+1  3  3  1  
+1  4  6  4  1  
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is all good, but quite unsatisfying. It would be better if we could get the entire row in a single call:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(defn pad
+  [row]
+  (concat &#39;(0) row &#39;(0)))
+
+(defn triangle2
+  [row]
+  (if (= 0 row)
+    &#39;(1)
+    (let [previous (pad (triangle2 (dec row)))]
+      (map +&#39; previous (next previous)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here we recurse down to the first row, which returns &lt;code&gt;&#39;(1)&lt;/code&gt;. Then for each successive row we pad the prior one with 0, so &lt;code&gt;&#39;(1 2 1)&lt;/code&gt; becomes &lt;code&gt;&#39;(0 1 2 1 0)&lt;/code&gt;. And then we add that row with itself offset by one using &lt;code&gt;map&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;  (0 1 2 1 0)
+  (1 2 1 0)
+  -----------
+  (1 3 3 1)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And we can print out our triangle :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(doseq [row (range 5)] (println (triangle2 row)))
+
+(1)
+(1 1)
+(1 2 1)
+(1 3 3 1)
+(1 4 6 4 1)
+nil
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;However this is hopelessly inefficient. For each row we have to calculate the prior rows, every time. It would be much better and more idiomatic if we could create a lazy sequence of these rows so that each step builds on the prior ones.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(defn lazy-triangle
+  ([] (lazy-triangle &#39;(1)))
+  ([previous]
+   (lazy-seq
+       (cons previous
+          (lazy-triangle (let [padded (pad previous)]
+                           (map +&#39; padded (next padded))))))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here we cons the previous row to a lazy-seq to build up our lazy sequence:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(doseq [row (take 5 (lazy-triangle))] (println row))
+
+(1)
+(1 1)
+(1 2 1)
+(1 3 3 1)
+(1 4 6 4 1)
+nil
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The above function can be rewritten much more succintly using &lt;a href=&#34;http://clojuredocs.org/clojure.core/iterate&#34;&gt;iterate&lt;/a&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(def lazy-triangle2 (iterate (fn [previous]
+                               (let [padded (pad previous)]
+                                 (map +&#39; padded (next padded))))
+                             &#39;(1)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;(doseq [row (take 5 lazy-triangle2)] (println row))
+
+(1)
+(1 1)
+(1 2 1)
+(1 3 3 1)
+(1 4 6 4 1)
+nil
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;sierpinski-triangle:d992317aacfe2cfd22e5b82457a6da35&#34;&gt;Sierpinski Triangle&lt;/h2&gt;
+
+&lt;p&gt;Now the interesting thing about Pascals Triangle is that if you keep the odd numbers and clear out the even numbers, you end up with &lt;a href=&#34;https://en.wikipedia.org/wiki/Sierpinski_triangle&#34;&gt;Sierpinski&amp;rsquo;s triangle&lt;/a&gt;. Lets try it. Now instead of adding the rows together, we will add and then Mod with 2 to ensure we only have 1 or 0 in our triangle.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(defn +mod2
+  [a b]
+  (mod (+ a b) 2))
+
+(def sierpinski-triangle (iterate (fn [previous]
+                                    (let [padded (pad previous)]
+                                      (map +mod2 padded (next padded))))
+                                  &#39;(1)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;(doseq [row (take 10 sierpinski-triangle)] (println row))
+
+(1)
+(1 1)
+(1 0 1)
+(1 1 1 1)
+(1 0 0 0 1)
+(1 1 0 0 1 1)
+(1 0 1 0 1 0 1)
+(1 1 1 1 1 1 1 1)
+(1 0 0 0 0 0 0 0 1)
+(1 1 0 0 0 0 0 0 1 1)
+nil
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now you do have to squint a little in order to see the triangle there - ideally the rows would be centralised, but the triangle is there.&lt;/p&gt;
+
+&lt;h2 id=&#34;sierpinski-pyramid:d992317aacfe2cfd22e5b82457a6da35&#34;&gt;Sierpinski Pyramid&lt;/h2&gt;
+
+&lt;p&gt;Lets expand our pyramid into the third dimension.&lt;/p&gt;
+
+&lt;p&gt;Adding a new dimension means instead of each row being represented by a vector, it will now be a vector of vectors. Something like :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[[1]]
+[[1 1]
+ [1 1]]
+[[1 1 1]
+ [1 0 1]
+ [1 1 1]]]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Iterating over each row will look something like :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+(iterate next-level [[1]])
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As before we first need to pad each row. This time we need to do it in 3 dimensions.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(defn pad
+  [previous]
+  (let [len (-&amp;gt; previous count (+ 2))]
+    `(~(repeat len 0)
+      ~@(map (fn [a] `(0 ~@a 0)) previous)
+      ~(repeat len 0))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We get the length (note each level of the pyramid is a square, the length and width will always be equal) of the previous level and add two (one for each side). Then we add a new list of zeros at the start and end of the previous rows - each of which is also mapped to add zeros around each row.&lt;/p&gt;
+
+&lt;p&gt;We are taking advantage of Clojures list templating features to help us build up our list. Usually these are used for macros, but they can be very useful to easily build up lists as well.&lt;/p&gt;
+
+&lt;p&gt;When creating a 2d triangle, we would add the numbers from the two columns above in the preceeding level. Now that we are in 3d we need to add the four numbers from the above rows and columns in both directions. To acheive this we need to pair each vector within the level above:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(defn pairs
+  [[x &amp;amp; xs]]
+  (lazy-seq
+   (cons [x (first xs)]
+         (if (seq (rest xs))
+           (pairs xs)
+           nil))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The pairs function creates a sequence of vectors of each row in the list together with the ensuing row.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+ (pairs [[0 0 0] [0 1 0] [0 0 0]])
+
+([[0 0 0] [0 1 0]]
+ [[0 1 0] [0 0 0]])
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now that we have each pair of padded rows, we can add them up.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+(map (fn [[a b]]
+     (map +mod2 a b (next a) (next b)))
+     pairs)
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We have a nested map so we can get each pair of rows and each pair of columns within those rows. This gives us the four values above which combine to make the value for this column.&lt;/p&gt;
+
+&lt;p&gt;We can then put this all together with the following function.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+(defn next-level
+  [previous]
+  (-&amp;gt;&amp;gt; previous pad pairs add-rows))
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can now create our 3D pyramid.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+(take 4 (iterate next-level [[1]]))
+
+([[1]] [[1 1] [1 1]] [[1 0 1] [0 0 0] [1 0 1]] [[1 1 1 1] [1 1 1 1] [1 1 1 1] [1 1 1 1]])
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This isn&amp;rsquo;t a particularly pleasant way to view our pyramid. Minecraft would be a much better way. Using &lt;a href=&#34;https://github.com/SevereOverfl0w/bukkure&#34;&gt;Bukkure&lt;/a&gt; we can create plugins for Minecraft in Clojure.&lt;/p&gt;
+
+&lt;p&gt;Here are some of our pyramids :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/shot1.png&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/shot2.png&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Flying around a pyramid can be particularly satisfying.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/pyramid.gif&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;The source code for the plugin can be found &lt;a href=&#34;https://github.com/FungusHumungus/bukkure-fractalz&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Cond and friends</title>
+      <link>http://localhost:1313/cond-and-friends/</link>
+      <pubDate>Fri, 12 Jun 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/cond-and-friends/</guid>
+      <description>
+
+&lt;p&gt;There are a number of different cond&amp;rsquo;s in Clojure.&lt;/p&gt;
+
+&lt;h2 id=&#34;cond:1765d41f4434e779fd36523cc876cd66&#34;&gt;cond&lt;/h2&gt;
+
+&lt;p&gt;The classic cond. This replaces the standard &lt;code&gt;if...else if....else&lt;/code&gt; that you find in other languages. It takes a set of test and expression pairs. For the first test that evaluates to &lt;code&gt;true&lt;/code&gt; it will evaluate and return its corresponing expression.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(cond (is-banana? me) &amp;quot;I am a banana&amp;quot;
+      (is-slug? me) &amp;quot;I am a slug&amp;quot;
+      :else &amp;quot;I am a turnip&amp;quot;)
+
+=&amp;gt; &amp;quot;I am a slug&amp;quot;      
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;cond-1:1765d41f4434e779fd36523cc876cd66&#34;&gt;cond-&amp;gt;&lt;/h2&gt;
+
+&lt;p&gt;Now cond short circuits - it will stop at the first true expression. You may think &amp;ldquo;aaarg.. but more than one of my expressions may be true, I want all my true expressions to evaluate&amp;rdquo;. In this case you probably want to use &lt;code&gt;cond-&amp;gt;&lt;/code&gt;. &lt;code&gt;cond-&amp;gt;&lt;/code&gt; takes an initial form  and then a set of test and expression pairs. It will then thread that initial form through each expression where the test evaluates to true.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(cond-&amp;gt; &amp;quot;I am a &amp;quot; (is-slimey? me) (str &amp;quot;slimey &amp;quot;)
+                  (is-banana? me) (str &amp;quot;banana&amp;quot;)
+                  (is-slug? me) (str &amp;quot;slug&amp;quot;))
+
+=&amp;gt; &amp;quot;I am a slimey slug&amp;quot;                  
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;cond-2:1765d41f4434e779fd36523cc876cd66&#34;&gt;cond-&amp;gt;&amp;gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;cond-&amp;gt;&amp;gt;&lt;/code&gt; is pretty much the same as &lt;code&gt;cond-&amp;gt;&lt;/code&gt; except &lt;code&gt;cond-&amp;gt;&lt;/code&gt; threads first (puts the threaded param first in the argument list) and &lt;code&gt;cond-&amp;gt;&amp;gt;&lt;/code&gt; threads last (puns the threaded param last in the argument list).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(cond-&amp;gt;&amp;gt; &amp;quot;I am a &amp;quot; (is-slimey? me) (str &amp;quot;slimey &amp;quot;)
+                   (is-banana? me) (str &amp;quot;banana&amp;quot;)
+                   (is-slug? me) (str &amp;quot;slug&amp;quot;))
+
+=&amp;gt; &amp;quot;slug slimey I am a&amp;quot;                  
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;when:1765d41f4434e779fd36523cc876cd66&#34;&gt;when&lt;/h2&gt;
+
+&lt;p&gt;You might be thinking, &amp;ldquo;I don&amp;rsquo;t want to thread an argument through all the true expressions - I just want to evaluate them&amp;rdquo;. The only reason you would want to do this would be if those exressions had side effects and you wanted to ignore their results.&lt;/p&gt;
+
+&lt;p&gt;If you really want to ignore the results just use &lt;code&gt;when&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(when (is-slimey? me) (send-slime))
+(when (is-banana? me) (send-banana))
+(when (is-slug? me) (send-slug))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;case:1765d41f4434e779fd36523cc876cd66&#34;&gt;case&lt;/h2&gt;
+
+&lt;p&gt;If you find you are writing this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(cond (= me &amp;quot;banana&amp;quot;) &amp;quot;I am a banana&amp;quot;
+      (= me &amp;quot;slug&amp;quot;) &amp;quot;I am a slug&amp;quot;
+      :else &amp;quot;I am a turnip&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You should probably be using &lt;code&gt;case&lt;/code&gt; instead. &lt;code&gt;case&lt;/code&gt; takes an expression and thes a set of constant and expression pairs. For the first constant that is equal to the result of our expression the result of the corresponding expression is returned. There can be a single default expression at the end of our clauses that is evaluated and returned if none of the given constants are equal.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(case me
+      &amp;quot;banana&amp;quot; &amp;quot;I am a banana&amp;quot;
+      &amp;quot;slug&amp;quot; &amp;quot;I am a slug&amp;quot;
+      &amp;quot;I am a turnip)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If none of the clauses match and there is no default you will get an IllegalArgumentException.&lt;/p&gt;
+
+&lt;h2 id=&#34;condp:1765d41f4434e779fd36523cc876cd66&#34;&gt;condp&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;case&lt;/code&gt; is good and all, but that only uses = to determine a match. What if we wanted to use some other predicate instead - say a regex match - we could fall back to cond.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(cond (re-seq #&amp;quot;handsome&amp;quot; (looks me)) &amp;quot;Yes I am&amp;quot;
+      (re-seq #&amp;quot;funky&amp;quot; (looks me)) &amp;quot;I&#39;m ugly but at least I&#39;m funky&amp;quot;
+      :else &amp;quot;Oh dear&amp;quot;)
+
+=&amp;gt; &amp;quot;I&#39;m ugly but at least I&#39;m funky&amp;quot;      
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;However, here it would be neater to use &lt;code&gt;condp&lt;/code&gt;. &lt;code&gt;condp&lt;/code&gt; takes a predicate, a parameter (which is passed as the second parameter to the predicate) and a set of test expressions to result expressions. Then it runs through the clauses and passes each result of the test expression as the first parameter to the predicate. An example might make it clearer. The above can be rewritten as :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(condp re-seq (looks me)
+       #&amp;quot;handsome&amp;quot; &amp;quot;Yes I am&amp;quot;
+       #&amp;quot;funky&amp;quot; &amp;quot;I&#39;m ugly but at least I&#39;m funky&amp;quot;
+       &amp;quot;Oh dear&amp;quot;)
+
+=&amp;gt; &amp;quot;I&#39;m ugly but at least I&#39;m funky&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;condp&lt;/code&gt; is even better than that. If we separate our test clause and result clause with a &lt;code&gt;:&amp;gt;&amp;gt;&lt;/code&gt; then the result of running the predicate with the test clause gets passed to the result clause - which must now be a function.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(condp re-find (looks me)
+       #&amp;quot;.*handsome.*&amp;quot; :&amp;gt;&amp;gt; #(str &amp;quot;Yes I am&amp;quot; %)
+       #&amp;quot;.*funky.*&amp;quot; :&amp;gt;&amp;gt; #(str &amp;quot;I&#39;m ugly but at least I&#39;m &amp;quot; %)
+       &amp;quot;Oh dear&amp;quot;)
+
+=&amp;gt; &amp;quot;I&#39;m ugly but at least I&#39;m Big and funky&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;and-or:1765d41f4434e779fd36523cc876cd66&#34;&gt;and &amp;amp; or&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;cond&lt;/code&gt; can be implemented just using the &lt;code&gt;and&lt;/code&gt; and &lt;code&gt;or&lt;/code&gt; boolean operators.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;or&lt;/code&gt; will short-circuit (stop processing) at the first true expression (everything apart from false and nil) and will return the result of evaluating it :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(or (= 3 2) (= 4 3) &amp;quot;fish&amp;quot; (println &amp;quot;ooops&amp;quot;))
+
+=&amp;gt; &amp;quot;fish&amp;quot; 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;and&lt;/code&gt; will short-circuit at the first false expression. If there is a false value it returns false, otherwise it will return the result of the final expression :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(and true 4 :a &amp;quot;fish&amp;quot;)
+
+=&amp;gt; fish
+
+(and true (= 3 &amp;quot;fish&amp;quot;) (println &amp;quot;ooops&amp;quot;))
+
+=&amp;gt; false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can put these two together to emulate our initial &lt;code&gt;cond&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(or (and (is-banana? me) &amp;quot;I am a banana&amp;quot;)
+    (and (is-slug? me) &amp;quot;I am a slug&amp;quot;)
+    &amp;quot;I am a turnip&amp;quot;)
+
+=&amp;gt; &amp;quot;I am a slug&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;With a little imagination you can create all kinds of complex conditional structures just using &lt;code&gt;or&lt;/code&gt; and &lt;code&gt;and&lt;/code&gt;. Whether you should or not is up to you!&lt;/p&gt;
+
+&lt;p&gt;Enjoy!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
