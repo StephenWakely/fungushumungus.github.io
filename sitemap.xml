@@ -2,68 +2,68 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://localhost:1313/</loc>
+    <loc>http://taoofcode.net/</loc>
     <lastmod>2015-10-20T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://localhost:1313/on-triangles/</loc>
+    <loc>http://taoofcode.net/on-triangles/</loc>
     <lastmod>2015-10-20T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/cond-and-friends/</loc>
+    <loc>http://taoofcode.net/cond-and-friends/</loc>
     <lastmod>2015-06-12T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/creating-a-plugin-system-with-the-compile-provider/</loc>
+    <loc>http://taoofcode.net/creating-a-plugin-system-with-the-compile-provider/</loc>
     <lastmod>2014-07-04T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/javascript-schonfinkeling/</loc>
+    <loc>http://taoofcode.net/javascript-schonfinkeling/</loc>
     <lastmod>2014-03-18T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/studying-the-angular-injector-loading-modules/</loc>
+    <loc>http://taoofcode.net/studying-the-angular-injector-loading-modules/</loc>
     <lastmod>2014-03-10T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/studying-the-angular-injector-the-twin-injectors/</loc>
+    <loc>http://taoofcode.net/studying-the-angular-injector-the-twin-injectors/</loc>
     <lastmod>2014-02-26T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/studying-the-angular-injector-getservice/</loc>
+    <loc>http://taoofcode.net/studying-the-angular-injector-getservice/</loc>
     <lastmod>2014-02-24T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/studying-the-angular-injector-invoke/</loc>
+    <loc>http://taoofcode.net/studying-the-angular-injector-invoke/</loc>
     <lastmod>2014-02-24T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/studying-the-angular-js-injector-instantiate/</loc>
+    <loc>http://taoofcode.net/studying-the-angular-js-injector-instantiate/</loc>
     <lastmod>2014-02-24T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/studying-the-angular-injector-annotate/</loc>
+    <loc>http://taoofcode.net/studying-the-angular-injector-annotate/</loc>
     <lastmod>2014-02-19T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/studying-the-angular-injector/</loc>
+    <loc>http://taoofcode.net/studying-the-angular-injector/</loc>
     <lastmod>2014-02-19T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/promise-anti-patterns/</loc>
+    <loc>http://taoofcode.net/promise-anti-patterns/</loc>
     <lastmod>2014-02-12T00:00:00+00:00</lastmod>
   </url>
   

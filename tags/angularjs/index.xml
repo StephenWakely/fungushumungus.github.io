@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Angularjs on Tao of Code</title>
-    <link>http://localhost:1313/tags/angularjs/</link>
+    <link>http://taoofcode.net/tags/angularjs/</link>
     <description>Recent content in Angularjs on Tao of Code</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>All rights reserved - 2015</copyright>
     <lastBuildDate>Fri, 04 Jul 2014 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/angularjs/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://taoofcode.net/tags/angularjs/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Creating a plugin system in Angular JS with the $compile service</title>
-      <link>http://localhost:1313/creating-a-plugin-system-with-the-compile-provider/</link>
+      <link>http://taoofcode.net/creating-a-plugin-system-with-the-compile-provider/</link>
       <pubDate>Fri, 04 Jul 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/creating-a-plugin-system-with-the-compile-provider/</guid>
+      <guid>http://taoofcode.net/creating-a-plugin-system-with-the-compile-provider/</guid>
       <description>
 
 &lt;p&gt;Angular JS directives are powerful. Using them allows you to manipulate pretty much everything in the DOM that you would want to. But there is one exception. Dynamically creating a directive depending on data received from the server, something often used for plugin systems. Luckily we can access the $compileProvider directly to work around these limitations.&lt;/p&gt;
@@ -140,10 +140,10 @@ angular.module(&#39;anApp&#39;).directive(&#39;two&#39;, function() {
     
     <item>
       <title>Studying the Angular JS Injector - loading modules</title>
-      <link>http://localhost:1313/studying-the-angular-injector-loading-modules/</link>
+      <link>http://taoofcode.net/studying-the-angular-injector-loading-modules/</link>
       <pubDate>Mon, 10 Mar 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/studying-the-angular-injector-loading-modules/</guid>
+      <guid>http://taoofcode.net/studying-the-angular-injector-loading-modules/</guid>
       <description>
 
 &lt;p&gt;(This post is part of a series &lt;a href=&#34;http://taoofcode.net/studying-the-angular-injector/&#34;&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;
@@ -302,10 +302,10 @@ for(invokeQueue = moduleFn._invokeQueue, i = 0, ii = invokeQueue.length; i &amp;
     
     <item>
       <title>Studying the Angular JS Injector - the twin injectors</title>
-      <link>http://localhost:1313/studying-the-angular-injector-the-twin-injectors/</link>
+      <link>http://taoofcode.net/studying-the-angular-injector-the-twin-injectors/</link>
       <pubDate>Wed, 26 Feb 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/studying-the-angular-injector-the-twin-injectors/</guid>
+      <guid>http://taoofcode.net/studying-the-angular-injector-the-twin-injectors/</guid>
       <description>
 
 &lt;p&gt;(This post is part of a series &lt;a href=&#34;http://taoofcode.net/studying-the-angular-injector/&#34;&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;
@@ -457,10 +457,10 @@ Error: [$injector:unpr] Unknown provider: $providerProvider &amp;lt;- $provider
     
     <item>
       <title>Studying the Angular JS Injector - getService</title>
-      <link>http://localhost:1313/studying-the-angular-injector-getservice/</link>
+      <link>http://taoofcode.net/studying-the-angular-injector-getservice/</link>
       <pubDate>Mon, 24 Feb 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/studying-the-angular-injector-getservice/</guid>
+      <guid>http://taoofcode.net/studying-the-angular-injector-getservice/</guid>
       <description>&lt;p&gt;(This post is part of a series &lt;a href=&#34;http://taoofcode.net/studying-the-angular-injector/&#34;&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;
 
 &lt;p&gt;The &lt;code&gt;getService&lt;/code&gt; function is the work-horse of &lt;code&gt;invoke&lt;/code&gt;. This is the method that takes a service name and attempts to locate it in the list of registered services.&lt;/p&gt;
@@ -509,10 +509,10 @@ Error: [$injector:unpr] Unknown provider: $providerProvider &amp;lt;- $provider
     
     <item>
       <title>Studying the Angular JS Injector - instantiate</title>
-      <link>http://localhost:1313/studying-the-angular-js-injector-instantiate/</link>
+      <link>http://taoofcode.net/studying-the-angular-js-injector-instantiate/</link>
       <pubDate>Mon, 24 Feb 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/studying-the-angular-js-injector-instantiate/</guid>
+      <guid>http://taoofcode.net/studying-the-angular-js-injector-instantiate/</guid>
       <description>&lt;p&gt;(This post is part of a series &lt;a href=&#34;http://taoofcode.net/studying-the-angular-injector/&#34;&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;
 
 &lt;p&gt;Whilst &lt;code&gt;invoke&lt;/code&gt; calls a function with it&amp;rsquo;s parameters injected, &lt;code&gt;instantiate&lt;/code&gt; will contruct a new object with it&amp;rsquo;s constructor parameters injected.&lt;/p&gt;
@@ -665,10 +665,10 @@ Professor Plonk is my friend
     
     <item>
       <title>Studying the Angular JS Injector - invoke</title>
-      <link>http://localhost:1313/studying-the-angular-injector-invoke/</link>
+      <link>http://taoofcode.net/studying-the-angular-injector-invoke/</link>
       <pubDate>Mon, 24 Feb 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/studying-the-angular-injector-invoke/</guid>
+      <guid>http://taoofcode.net/studying-the-angular-injector-invoke/</guid>
       <description>&lt;p&gt;(This post is part of a series &lt;a href=&#34;http://taoofcode.net/studying-the-angular-injector/&#34;&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;
 
 &lt;p&gt;The invoke method invokes the given function with the parameters injected.&lt;/p&gt;
@@ -729,10 +729,10 @@ Professor Plonk is my friend
     
     <item>
       <title>Studying the Angular JS Injector - annotate</title>
-      <link>http://localhost:1313/studying-the-angular-injector-annotate/</link>
+      <link>http://taoofcode.net/studying-the-angular-injector-annotate/</link>
       <pubDate>Wed, 19 Feb 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/studying-the-angular-injector-annotate/</guid>
+      <guid>http://taoofcode.net/studying-the-angular-injector-annotate/</guid>
       <description>&lt;p&gt;(This post is part of a series &lt;a href=&#34;http://taoofcode.net/studying-the-angular-injector/&#34;&gt;studying the AngularJS injector&lt;/a&gt;)&lt;/p&gt;
 
 &lt;p&gt;In order for the Injector to know what to inject into a given functions parameters, it needs a list of these parameters. This is what the &lt;code&gt;annotate&lt;/code&gt; function does.&lt;/p&gt;
@@ -899,10 +899,10 @@ arg.replace(FN_ARG, function(all, underscore, name){
     
     <item>
       <title>Studying the Angular JS Injector - intro</title>
-      <link>http://localhost:1313/studying-the-angular-injector/</link>
+      <link>http://taoofcode.net/studying-the-angular-injector/</link>
       <pubDate>Wed, 19 Feb 2014 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/studying-the-angular-injector/</guid>
+      <guid>http://taoofcode.net/studying-the-angular-injector/</guid>
       <description>
 
 &lt;p&gt;I am truly impressed with the elegance of AngularJS and have been studying the source code to fully understand it. In this series I will be studying the Injector module as this is one of the core modules around which the rest of the framework revolves.&lt;/p&gt;

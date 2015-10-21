@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Clojure on Tao of Code</title>
-    <link>http://localhost:1313/tags/clojure/</link>
+    <link>http://taoofcode.net/tags/clojure/</link>
     <description>Recent content in Clojure on Tao of Code</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>All rights reserved - 2015</copyright>
     <lastBuildDate>Tue, 20 Oct 2015 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/clojure/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://taoofcode.net/tags/clojure/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>On Triangles</title>
-      <link>http://localhost:1313/on-triangles/</link>
+      <link>http://taoofcode.net/on-triangles/</link>
       <pubDate>Tue, 20 Oct 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/on-triangles/</guid>
+      <guid>http://taoofcode.net/on-triangles/</guid>
       <description>
 
 &lt;p&gt;In &lt;a href=&#34;ttps://mitpress.mit.edu/sicp/full-text/book/book-Z-H-11.html#%_sec_1.2.2&#34;&gt;SICP 1.2.2 Tree Recursion&lt;/a&gt; we have Exercise 1.12 which asks us to code up a recursive solution to compute the elements of Pascals Triangle.&lt;/p&gt;
@@ -250,15 +250,15 @@ nil
 
 &lt;p&gt;Here are some of our pyramids :&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/shot1.png&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://taoofcode.net/img/shot1.png&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
 &lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/shot2.png&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://taoofcode.net/img/shot2.png&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
 &lt;/p&gt;
 
 &lt;p&gt;Flying around a pyramid can be particularly satisfying.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/pyramid.gif&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;http://taoofcode.net/img/pyramid.gif&#34; alt=&#34;Sierpinski Pyramid&#34; /&gt;
 &lt;/p&gt;
 
 &lt;p&gt;The source code for the plugin can be found &lt;a href=&#34;https://github.com/FungusHumungus/bukkure-fractalz&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
@@ -267,10 +267,10 @@ nil
     
     <item>
       <title>Cond and friends</title>
-      <link>http://localhost:1313/cond-and-friends/</link>
+      <link>http://taoofcode.net/cond-and-friends/</link>
       <pubDate>Fri, 12 Jun 2015 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/cond-and-friends/</guid>
+      <guid>http://taoofcode.net/cond-and-friends/</guid>
       <description>
 
 &lt;p&gt;There are a number of different cond&amp;rsquo;s in Clojure.&lt;/p&gt;
