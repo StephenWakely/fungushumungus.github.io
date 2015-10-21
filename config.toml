@@ -1,0 +1,18 @@
+baseurl = "http://taoofcode.net/"
+languageCode = "en-us"
+title = "Tao of Code"
+DisqusShortname = "taoofcode"
+Copyright = "All rights reserved - 2015"
+
+[params]
+  description = "The sound of recursion"
+  authorwebsite = "http://taoofcode.net"
+  bio= "Code Monkey"
+  cover = "img/cover.jpg"
+  logo = "img/logo.gif"
+  googleAnalyticsUserID = "UA-48094087-1"
+  # Optional RSS-Link, if not provided it defaults to the standard index.xml
+  githubName = "fungushumungus"
+  twitterName = "fungushumungus"
+  # set true if you are not proud of using Hugo (true will hide the footer note "Proudly published with HUGO.....")
+  hideHUGOSupport = false
